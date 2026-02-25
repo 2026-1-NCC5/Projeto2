@@ -1,0 +1,21 @@
+services:
+  db:
+    image: postgres:16
+    environment:
+      POSTGRES_DB: app
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    ports:
+      - "5432:5432"
+
+  api:
+    build: .
+    environment:
+      ENV: local
+      DATABASE_URL: postgresql+psycopg2://postgres:postgres@db:5432/app
+      JWT_SECRET: CHANGE_ME_LOCAL
+      ALLOWED_ORIGINS: "*"
+    ports:
+      - "8000:8000"
+    depends_on:
+      - db
