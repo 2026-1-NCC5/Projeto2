@@ -22,12 +22,13 @@ O Lideranças Empáticas (LE) é uma iniciativa que une impacto social e educaç
  │   │  └── 📂 Projeto<br>
  └── 📄 readme.md<br>
  
- # 💻 Configuração para Desenvolvimento
-Para abrir este projeto você necessita das seguintes ferramentas:
+ # 💻 Tecnologias para Desenvolvimento
 
--<a href="https://code.visualstudio.com/">Visual Studio Code</a><br>
--<a href="https://flutter.dev/">Flutter</a><br>
--<a href="https://dart.dev/">Dart</a><br>
--<a href="https://www.python.org/">Python</a><br>
+<ul>
+  <li><img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/vscode/vscode-original.svg" width="18"/> <a href="https://code.visualstudio.com/">Visual Studio Code</a></li>
+  <li><img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/flutter/flutter-original.svg" width="18"/> <a href="https://flutter.dev/">Flutter</a></li>
+  <li><img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/dart/dart-original.svg" width="18"/> <a href="https://dart.dev/">Dart</a></li>
+  <li><img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/python/python-original.svg" width="18"/> <a href="https://www.python.org/">Python</a></li>
+</ul>
 
 README.MD: Arquivo que serve como guia e explicação geral sobre o projeto.
