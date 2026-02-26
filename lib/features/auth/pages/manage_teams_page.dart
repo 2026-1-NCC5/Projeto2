@@ -31,7 +31,10 @@ class _ManageTeamsPageState extends State<ManageTeamsPage> {
       return;
     }
 
+    // ⚠️ No seu provider atual não tem addTeam (só setTeams vindo do backend).
+    // Se você ainda está em MVP local, mantenha addTeam no provider.
     appProvider.addTeam(name);
+
     teamNameController.clear();
 
     ScaffoldMessenger.of(context).showSnackBar(
@@ -42,7 +45,8 @@ class _ManageTeamsPageState extends State<ManageTeamsPage> {
     );
   }
 
-  void removeTeam(TeamLife team) {
+  // ✅ aqui está a correção principal: TeamLite
+  void removeTeam(TeamLite team) {
     final appProvider = Provider.of<AppProvider>(context, listen: false);
     appProvider.removeTeam(team);
 
@@ -61,7 +65,10 @@ class _ManageTeamsPageState extends State<ManageTeamsPage> {
         centerTitle: true,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
-          onPressed: () => Navigator.pushReplacementNamed(context, appProvider.homeRoute),
+          onPressed: () => Navigator.pushReplacementNamed(
+            context,
+            appProvider.homeRoute,
+          ),
         ),
       ),
       body: Padding(
@@ -112,7 +119,8 @@ class _ManageTeamsPageState extends State<ManageTeamsPage> {
                         color: isActive ? AppColors.green : null,
                       ),
                       title: Text(team.name),
-                      subtitle: Text(isActive ? 'Equipe ativa' : 'Equipe cadastrada'),
+                      subtitle:
+                          Text(isActive ? 'Equipe ativa' : 'Equipe cadastrada'),
                       trailing: IconButton(
                         icon: const Icon(Icons.delete, color: Colors.red),
                         onPressed: () => removeTeam(team),

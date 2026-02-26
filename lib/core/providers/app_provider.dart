@@ -234,13 +234,44 @@ class AppProvider extends ChangeNotifier {
   _email = email.trim();
   notifyListeners();
 }
-String exportReadingsCsv() {
+String exportReadingsCsv({
+  required String teamFilter,
+  required String categoryFilter,
+  DateTime? startDate,
+  DateTime? endDate,
+}) {
   final buffer = StringBuffer();
   buffer.writeln('team,category,operator,timestamp');
 
-  for (final r in _readings) {
+  final filtered = _readings.where((r) {
+    final matchTeam =
+        teamFilter == 'Todas' || r.teamName == teamFilter;
+
+    final matchCategory =
+        categoryFilter == 'Todas' ||
+        foodCategoryLabel(r.category) == categoryFilter;
+
+    final matchStart =
+        startDate == null ||
+        r.timestamp.isAfter(
+          DateTime(startDate.year, startDate.month, startDate.day),
+        );
+
+    final matchEnd =
+        endDate == null ||
+        r.timestamp.isBefore(
+          DateTime(endDate.year, endDate.month, endDate.day + 1),
+        );
+
+    return matchTeam && matchCategory && matchStart && matchEnd;
+  });
+
+  for (final r in filtered) {
     buffer.writeln(
-      '${r.teamName},${foodCategoryLabel(r.category)},${r.operatorName},${r.timestamp.toIso8601String()}',
+      '${r.teamName},'
+      '${foodCategoryLabel(r.category)},'
+      '${r.operatorName},'
+      '${r.timestamp.toIso8601String()}',
     );
   }
 
