@@ -6,7 +6,7 @@ Projeto 2
 </p>
 
 # 👨‍💻 Integrantes:  <a href="https://github.com/AntonioPetri">Antonio Petri de Moraes Soares de Moura e Oliveira,</a> <a href="https://github.com/Leonardoss23">Leonardo Santos da Silva,</a> <a href="https://github.com/oGubo">Lucas de Lima Gutierrez e <a href="https://github.com/vitorzoken">Vitor Kenzo Kanashiro
-# 👨‍🏫 Professores Orientadores:<a href="https://br.linkedin.com/in/marcosminorunakatsugawa/pt">Prof. Marcos Minoru Nakatsugawa,</a> <a href="https://br.linkedin.com/in/rafael-diogo-rossetti"> Rafael Diogo Rossetti,</a> <a href="https://github.com/roddai">Prof. Rodrigo da Rosa,<a/> <a href="https://www.researchgate.net/profile/Rodnil-Lisboa-2">Prof. Rodnil da Silva Moreira Lisboa e </a> <a href="https://github.com/VictorRosetti">Prof. Victor Rosseti</a>
+# 👨‍🏫 Professores Orientadores: <a href="https://br.linkedin.com/in/marcosminorunakatsugawa/pt">Prof. Marcos Minoru Nakatsugawa,</a> <a href="https://br.linkedin.com/in/rafael-diogo-rossetti"> Rafael Diogo Rossetti,</a> <a href="https://github.com/roddai">Prof. Rodrigo da Rosa,<a/> <a href="https://www.researchgate.net/profile/Rodnil-Lisboa-2">Prof. Rodnil da Silva Moreira Lisboa e </a> <a href="https://github.com/VictorRosetti">Prof. Victor Rosseti</a>
 
 # 📄 Descrição
 O Lideranças Empáticas (LE) é uma iniciativa que une impacto social e educação empreendedora, na qual nós desenvolvemos ações práticas de liderança, gestão e organização durante a arrecadação de alimentos. Para aprimorar esse processo, estamos criando uma solução capaz de identificar, classificar e contar automaticamente os alimentos arrecadados, registrando de forma confiável os resultados por equipe e por categoria.
