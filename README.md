@@ -13,12 +13,12 @@ O Lideranças Empáticas (LE) é uma iniciativa que une impacto social e educaç
 
 # 📋 Detalhes
  🗂️ Estrutura de pastas<br>
- ├── 🗂️ documentos/<br>
+ ├── 🗂️ Documentos/<br>
  │   ├── 📁 Entrega01<br>
  │   │  └── 📂 Algebra_Linear<br>
- │   │  └── 📂 Inteligência_Artifical<br>
+ │   │  └── 📂 Inteligencia_Artifical<br>
  │   │  └── 📂 Sistemas_Operacionais<br>
- │   │  └── 📂 Psicologia_Liderança<br>
+ │   │  └── 📂 Psicologia_Lideranca<br>
  │   │  └── 📂 Projeto<br>
  └── 📄 readme.md<br>
  
