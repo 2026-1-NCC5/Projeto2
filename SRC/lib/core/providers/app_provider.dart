@@ -30,6 +30,13 @@ class TeamLite {
   final int id;
   final String name;
   const TeamLite({required this.id, required this.name});
+
+  factory TeamLite.fromMap(Map<String, dynamic> m) {
+    return TeamLite(
+      id: (m['id'] as num).toInt(),
+      name: (m['name'] ?? '').toString(),
+    );
+  }
 }
 
 class ReadingEvent {
@@ -65,7 +72,7 @@ class Goal {
 }
 
 class AppProvider extends ChangeNotifier {
-  // ===== Perfil / auth (MVP)
+  // ===== Perfil/Auth (MVP)
   UserRole _userRole = UserRole.operador;
   String _name = '';
   String _email = '';
@@ -108,50 +115,31 @@ class AppProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  // ===== Equipes (local)
-  final List<TeamLite> _teams = [
-    const TeamLite(id: 1, name: 'Equipe A'),
-    const TeamLite(id: 2, name: 'Equipe B'),
-    const TeamLite(id: 3, name: 'Equipe C'),
-  ];
+  void updateProfileLocal({required String name, required String email}) {
+    _name = name.trim();
+    _email = email.trim();
+    notifyListeners();
+  }
 
+  // ===== Equipes (backend/local)
+  List<TeamLite> _teams = [];
   TeamLite? _activeTeam;
 
   List<TeamLite> get teams => List.unmodifiable(_teams);
   TeamLite? get activeTeam => _activeTeam;
 
-  int _nextTeamId() {
-    if (_teams.isEmpty) return 1;
-    final maxId = _teams.map((t) => t.id).reduce((a, b) => a > b ? a : b);
-    return maxId + 1;
+  void setTeams(List<Map<String, dynamic>> data) {
+    _teams = data.map(TeamLite.fromMap).toList();
+
+    // se a ativa sumiu, limpa
+    if (_activeTeam != null && !_teams.any((t) => t.id == _activeTeam!.id)) {
+      _activeTeam = null;
+    }
+    notifyListeners();
   }
 
   void setActiveTeam(TeamLite? team) {
     _activeTeam = team;
-    notifyListeners();
-  }
-
-  void addTeam(String name) {
-    final trimmed = name.trim();
-    if (trimmed.isEmpty) return;
-
-    final exists = _teams.any((t) => t.name.toLowerCase() == trimmed.toLowerCase());
-    if (exists) return;
-
-    _teams.add(TeamLite(id: _nextTeamId(), name: trimmed));
-    notifyListeners();
-  }
-
-  void removeTeam(TeamLite team) {
-    _teams.removeWhere((t) => t.id == team.id);
-
-    if (_activeTeam?.id == team.id) {
-      _activeTeam = null;
-    }
-
-    _goals.removeWhere((g) => g.teamId == team.id);
-    _readings.removeWhere((r) => r.teamId == team.id);
-
     notifyListeners();
   }
 
@@ -199,14 +187,18 @@ class AppProvider extends ChangeNotifier {
     required FoodCategory category,
     required int target,
   }) {
-    final team = _teams.firstWhere(
-      (t) => t.name == teamName,
-      orElse: () => const TeamLite(id: -1, name: ''),
-    );
-    if (team.id == -1) return;
+    final team = _teams.where((t) => t.name == teamName).toList();
+    if (team.isEmpty) return;
 
-    final idx = _goals.indexWhere((g) => g.teamId == team.id && g.category == category);
-    final newGoal = Goal(teamId: team.id, teamName: team.name, category: category, target: target);
+    final t = team.first;
+    final idx = _goals.indexWhere((g) => g.teamId == t.id && g.category == category);
+
+    final newGoal = Goal(
+      teamId: t.id,
+      teamName: t.name,
+      category: category,
+      target: target,
+    );
 
     if (idx >= 0) {
       _goals[idx] = newGoal;
@@ -222,6 +214,44 @@ class AppProvider extends ChangeNotifier {
     notifyListeners();
   }
 
+  // ===== Export CSV
+  String exportReadingsCsv({
+    required String teamFilter,
+    required String categoryFilter,
+    DateTime? startDate,
+    DateTime? endDate,
+  }) {
+    final buffer = StringBuffer();
+    buffer.writeln('team,category,operator,timestamp,confidence');
+
+    final filtered = _readings.where((r) {
+      final matchTeam = teamFilter == 'Todas' || r.teamName == teamFilter;
+
+      final matchCategory = categoryFilter == 'Todas' ||
+          foodCategoryLabel(r.category) == categoryFilter;
+
+      final matchStart = startDate == null ||
+          r.timestamp.isAfter(DateTime(startDate.year, startDate.month, startDate.day));
+
+      final matchEnd = endDate == null ||
+          r.timestamp.isBefore(DateTime(endDate.year, endDate.month, endDate.day + 1));
+
+      return matchTeam && matchCategory && matchStart && matchEnd;
+    });
+
+    for (final r in filtered) {
+      buffer.writeln(
+        '${r.teamName},'
+        '${foodCategoryLabel(r.category)},'
+        '${r.operatorName},'
+        '${r.timestamp.toIso8601String()},'
+        '${r.confidence?.toStringAsFixed(4) ?? ""}',
+      );
+    }
+
+    return buffer.toString();
+  }
+
   void logout() {
     _userRole = UserRole.operador;
     _name = '';
@@ -229,52 +259,4 @@ class AppProvider extends ChangeNotifier {
     _activeTeam = null;
     notifyListeners();
   }
-  void updateProfileLocal({required String name, required String email}) {
-  _name = name.trim();
-  _email = email.trim();
-  notifyListeners();
-}
-String exportReadingsCsv({
-  required String teamFilter,
-  required String categoryFilter,
-  DateTime? startDate,
-  DateTime? endDate,
-}) {
-  final buffer = StringBuffer();
-  buffer.writeln('team,category,operator,timestamp');
-
-  final filtered = _readings.where((r) {
-    final matchTeam =
-        teamFilter == 'Todas' || r.teamName == teamFilter;
-
-    final matchCategory =
-        categoryFilter == 'Todas' ||
-        foodCategoryLabel(r.category) == categoryFilter;
-
-    final matchStart =
-        startDate == null ||
-        r.timestamp.isAfter(
-          DateTime(startDate.year, startDate.month, startDate.day),
-        );
-
-    final matchEnd =
-        endDate == null ||
-        r.timestamp.isBefore(
-          DateTime(endDate.year, endDate.month, endDate.day + 1),
-        );
-
-    return matchTeam && matchCategory && matchStart && matchEnd;
-  });
-
-  for (final r in filtered) {
-    buffer.writeln(
-      '${r.teamName},'
-      '${foodCategoryLabel(r.category)},'
-      '${r.operatorName},'
-      '${r.timestamp.toIso8601String()}',
-    );
-  }
-
-  return buffer.toString();
-}
 }

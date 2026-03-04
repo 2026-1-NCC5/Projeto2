@@ -13,14 +13,9 @@ class ReadingsApi {
   ReadingsApi(this.client);
 
   Future<Map<String, dynamic>> predict(File imageFile) async {
-    final token = await client.getToken();
     final uri = Uri.parse('${ApiConfig.baseUrl}/api/readings/predict');
 
     final request = http.MultipartRequest('POST', uri);
-
-    if (token != null) {
-      request.headers['Authorization'] = 'Bearer $token';
-    }
 
     final mime = lookupMimeType(imageFile.path) ?? 'image/jpeg';
     final parts = mime.split('/');

@@ -24,8 +24,6 @@ class AuthApi {
       throw Exception(res.body);
     }
 
-    final data = jsonDecode(res.body);
-    await client.setToken(data['access_token']);
   }
 
   Future<void> login({
@@ -41,8 +39,6 @@ class AuthApi {
       throw Exception(res.body);
     }
 
-    final data = jsonDecode(res.body);
-    await client.setToken(data['access_token']);
   }
 
   Future<Map<String, dynamic>> me() async {

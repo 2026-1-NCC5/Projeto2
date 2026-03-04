@@ -6,6 +6,7 @@ from app.routers.auth import router as auth_router
 from app.routers.teams import router as teams_router
 from app.routers.readings import router as readings_router
 from app.routers.goals import router as goals_router
+from app.routes import teams
 
 app = FastAPI(title=settings.APP_NAME)
 
@@ -23,7 +24,7 @@ app.include_router(auth_router)
 app.include_router(teams_router)
 app.include_router(readings_router)
 app.include_router(goals_router)
-
+app.include_router(teams.router)
 
 @app.get("/health")
 def health():

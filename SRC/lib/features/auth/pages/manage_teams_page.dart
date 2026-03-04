@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../../../core/providers/app_provider.dart';
+import '../../../core/api/teams_api.dart';
+import '../../../core/api/api_client.dart';
 import '../../../core/theme/app_colors.dart';
 
 class ManageTeamsPage extends StatefulWidget {
@@ -13,6 +15,14 @@ class ManageTeamsPage extends StatefulWidget {
 
 class _ManageTeamsPageState extends State<ManageTeamsPage> {
   final teamNameController = TextEditingController();
+  final teamsApi = TeamsApi(ApiClient());
+  bool loading = false;
+
+  @override
+  void initState() {
+    super.initState();
+    loadTeams();
+  }
 
   @override
   void dispose() {
@@ -20,39 +30,50 @@ class _ManageTeamsPageState extends State<ManageTeamsPage> {
     super.dispose();
   }
 
-  void createTeam() {
-    final appProvider = Provider.of<AppProvider>(context, listen: false);
-    final name = teamNameController.text.trim();
-
-    if (name.isEmpty) {
+  Future<void> loadTeams() async {
+    setState(() => loading = true);
+    try {
+      final lista = await teamsApi.getTeams();
+      if (mounted) {
+        Provider.of<AppProvider>(context, listen: false).setTeams(lista);
+      }
+    } catch (e) {
+      debugPrint("Erro ao carregar equipes: $e");
+      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Informe um nome para a equipe')),
+        SnackBar(content: Text('Erro ao carregar equipes: $e')),
       );
-      return;
+    } finally {
+      if (mounted) setState(() => loading = false);
     }
-
-    // ⚠️ No seu provider atual não tem addTeam (só setTeams vindo do backend).
-    // Se você ainda está em MVP local, mantenha addTeam no provider.
-    appProvider.addTeam(name);
-
-    teamNameController.clear();
-
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        backgroundColor: AppColors.green,
-        content: const Text('Equipe criada com sucesso'),
-      ),
-    );
   }
 
-  // ✅ aqui está a correção principal: TeamLite
-  void removeTeam(TeamLite team) {
-    final appProvider = Provider.of<AppProvider>(context, listen: false);
-    appProvider.removeTeam(team);
+  Future<void> createTeam() async {
+    final name = teamNameController.text.trim();
+    if (name.isEmpty) return;
 
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Equipe removida')),
-    );
+    try {
+      await teamsApi.createTeam(name);
+      teamNameController.clear();
+      await loadTeams();
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Erro ao criar equipe: $e')),
+      );
+    }
+  }
+
+  Future<void> removeTeam(int id) async {
+    try {
+      await teamsApi.deleteTeam(id);
+      await loadTeams();
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Erro ao remover equipe: $e')),
+      );
+    }
   }
 
   @override
@@ -71,68 +92,62 @@ class _ManageTeamsPageState extends State<ManageTeamsPage> {
           ),
         ),
       ),
-      body: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          children: [
-            Card(
-              child: Padding(
-                padding: const EdgeInsets.all(16),
-                child: Column(
-                  children: [
-                    TextField(
-                      controller: teamNameController,
-                      decoration: const InputDecoration(
-                        labelText: 'Nome da equipe',
-                        border: OutlineInputBorder(),
+      body: loading
+          ? const Center(child: CircularProgressIndicator())
+          : Padding(
+              padding: const EdgeInsets.all(16),
+              child: Column(
+                children: [
+                  Card(
+                    child: Padding(
+                      padding: const EdgeInsets.all(16),
+                      child: Column(
+                        children: [
+                          TextField(
+                            controller: teamNameController,
+                            decoration: const InputDecoration(
+                              labelText: 'Nome da equipe',
+                              border: OutlineInputBorder(),
+                            ),
+                          ),
+                          const SizedBox(height: 12),
+                          SizedBox(
+                            width: double.infinity,
+                            height: 48,
+                            child: ElevatedButton(
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: AppColors.primary,
+                              ),
+                              onPressed: createTeam,
+                              child: const Text('Criar equipe'),
+                            ),
+                          ),
+                        ],
                       ),
                     ),
-                    const SizedBox(height: 12),
-                    SizedBox(
-                      width: double.infinity,
-                      height: 48,
-                      child: ElevatedButton(
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: AppColors.primary,
-                        ),
-                        onPressed: createTeam,
-                        child: const Text('Criar equipe'),
-                      ),
+                  ),
+                  const SizedBox(height: 16),
+                  Expanded(
+                    child: ListView.builder(
+                      itemCount: appProvider.teams.length,
+                      itemBuilder: (context, index) {
+                        final team = appProvider.teams[index];
+                        return Card(
+                          child: ListTile(
+                            leading: const Icon(Icons.groups),
+                            title: Text(team.name),
+                            trailing: IconButton(
+                              icon: const Icon(Icons.delete, color: Colors.red),
+                              onPressed: () => removeTeam(team.id),
+                            ),
+                          ),
+                        );
+                      },
                     ),
-                  ],
-                ),
+                  ),
+                ],
               ),
             ),
-            const SizedBox(height: 16),
-            Expanded(
-              child: ListView.separated(
-                itemCount: appProvider.teams.length,
-                separatorBuilder: (_, __) => const SizedBox(height: 8),
-                itemBuilder: (context, index) {
-                  final team = appProvider.teams[index];
-                  final isActive = appProvider.activeTeam?.id == team.id;
-
-                  return Card(
-                    child: ListTile(
-                      leading: Icon(
-                        isActive ? Icons.star : Icons.groups,
-                        color: isActive ? AppColors.green : null,
-                      ),
-                      title: Text(team.name),
-                      subtitle:
-                          Text(isActive ? 'Equipe ativa' : 'Equipe cadastrada'),
-                      trailing: IconButton(
-                        icon: const Icon(Icons.delete, color: Colors.red),
-                        onPressed: () => removeTeam(team),
-                      ),
-                    ),
-                  );
-                },
-              ),
-            ),
-          ],
-        ),
-      ),
     );
   }
 }
