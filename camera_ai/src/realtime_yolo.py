@@ -18,26 +18,11 @@ LOG_FILE = os.path.join(LOG_DIR, "readings.csv")
 WINDOW_NAME = "Leitura Automatica - YOLOv8 + OpenCV"
 
 PRODUCTS = {
-    "arroz": {
-        "preco": 59.0,
-        "peso_kg": 5.0
-    },
-    "feijao": {
-        "preco": 16.0,
-        "peso_kg": 1.0
-    },
-    "outros": {
-        "preco": 25.0,
-        "peso_kg": 1.0
-    },
-    "acucar": {
-        "preco": 10.0,
-        "peso_kg": 1.0
-    },
-    "cafe": {
-        "preco": 45.0,
-        "peso_kg": 0.5
-    }
+    "arroz": {"preco": 59.0, "peso_kg": 5.0},
+    "feijao": {"preco": 16.0, "peso_kg": 1.0},
+    "outros": {"preco": 25.0, "peso_kg": 1.0},
+    "acucar": {"preco": 10.0, "peso_kg": 1.0},
+    "cafe": {"preco": 45.0, "peso_kg": 0.5}
 }
 
 os.makedirs(EVIDENCE_DIR, exist_ok=True)
@@ -56,13 +41,16 @@ if not os.path.exists(MODEL_PATH):
 
 model = YOLO(MODEL_PATH)
 
-cap = cv2.VideoCapture(CAMERA_INDEX)
+cap = cv2.VideoCapture(CAMERA_INDEX, cv2.CAP_DSHOW)
 
 if not cap.isOpened():
     raise RuntimeError(
         f"Não foi possível abrir a câmera no índice {CAMERA_INDEX}. "
         "Tente trocar CAMERA_INDEX para 1."
     )
+
+cv2.namedWindow(WINDOW_NAME, cv2.WINDOW_NORMAL)
+cv2.resizeWindow(WINDOW_NAME, 1000, 700)
 
 stable_label = None
 stable_count = 0
@@ -79,7 +67,7 @@ print("Pressione 'q' para sair.")
 
 while True:
     ret, frame = cap.read()
-    if not ret:
+    if not ret or frame is None:
         print("Falha ao capturar frame da câmera.")
         break
 
@@ -128,7 +116,6 @@ while True:
                     total_peso += peso
                     total_itens += 1
 
-                    # Gravar log CSV
                     with open(LOG_FILE, mode="a", newline="", encoding="utf-8") as f:
                         writer = csv.writer(f)
                         writer.writerow([
@@ -155,35 +142,74 @@ while True:
         stable_label = None
         stable_count = 0
 
-    cv2.rectangle(annotated_frame, (10, 10), (380, 140), (0, 0, 0), -1)
+    # PAINEL INFERIOR ESTILO APP
+    panel_width = 340
+    panel_height = 80
 
+    frame_height, frame_width = annotated_frame.shape[:2]
+
+    panel_x = int((frame_width - panel_width) / 2)
+    panel_y = frame_height - panel_height - 25
+
+    radius = 18
+    color = (209, 218, 230)  # BGR
+
+    overlay = annotated_frame.copy()
+
+    # retângulo central
+    cv2.rectangle(
+        overlay,
+        (panel_x + radius, panel_y),
+        (panel_x + panel_width - radius, panel_y + panel_height),
+        color,
+        -1
+    )
+
+    # retângulo vertical
+    cv2.rectangle(
+        overlay,
+        (panel_x, panel_y + radius),
+        (panel_x + panel_width, panel_y + panel_height - radius),
+        color,
+        -1
+    )
+
+    # cantos arredondados
+    cv2.circle(overlay, (panel_x + radius, panel_y + radius), radius, color, -1)
+    cv2.circle(overlay, (panel_x + panel_width - radius, panel_y + radius), radius, color, -1)
+    cv2.circle(overlay, (panel_x + radius, panel_y + panel_height - radius), radius, color, -1)
+    cv2.circle(overlay, (panel_x + panel_width - radius, panel_y + panel_height - radius), radius, color, -1)
+
+    cv2.addWeighted(overlay, 1, annotated_frame, 0, 0, annotated_frame)
+
+    # TEXTOS
     cv2.putText(
         annotated_frame,
         f"Quantidade: {total_itens}",
-        (20, 45),
+        (panel_x + 15, panel_y + 30),
         cv2.FONT_HERSHEY_SIMPLEX,
-        0.9,
-        (255, 255, 255),
+        0.6,
+        (0, 0, 0),
         2
     )
 
     cv2.putText(
         annotated_frame,
-        f"Peso total: {total_peso:.2f} kg",
-        (20, 80),
+        f"Peso: {total_peso:.2f} kg",
+        (panel_x + 15, panel_y + 60),
         cv2.FONT_HERSHEY_SIMPLEX,
-        0.9,
-        (255, 255, 255),
+        0.6,
+        (0, 0, 0),
         2
     )
 
     cv2.putText(
         annotated_frame,
-        f"Valor total: R$ {total_valor:.2f}",
-        (20, 115),
+        f"Valor: R$ {total_valor:.2f}",
+        (panel_x + 170, panel_y + 45),
         cv2.FONT_HERSHEY_SIMPLEX,
-        0.9,
-        (0, 255, 0),
+        0.7,
+        (0, 0, 0),
         2
     )
 
