@@ -1,0 +1,36 @@
+services:
+  db:
+    image: postgres:15
+    container_name: liderancas_db
+    restart: always
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - appnet
+
+  backend:
+    build: .
+    container_name: liderancas_backend
+    restart: always
+    env_file:
+      - .env
+    depends_on:
+      - db
+    volumes:
+      - ./app:/app/app
+      - ./uploads:/app/uploads
+      - ../camera_ai:/app/camera_ai
+    ports:
+      - "8000:8000"
+    networks:
+      - appnet
+
+volumes:
+  postgres_data:
+
+networks:
+  appnet:
