@@ -8,6 +8,4 @@ python-jose[cryptography]
 pydantic
 pydantic-settings
 email-validator
-opencv-python-headless
-ultralytics
 pillow
