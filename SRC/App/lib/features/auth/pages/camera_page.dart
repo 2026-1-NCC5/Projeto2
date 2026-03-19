@@ -1,12 +1,11 @@
+import 'dart:async';
 import 'dart:io';
 
+import 'package:camera/camera.dart';
 import 'package:flutter/material.dart';
-import 'package:image_picker/image_picker.dart';
-import 'package:provider/provider.dart';
 
 import '../../../core/api/api_client.dart';
 import '../../../core/api/readings_api.dart';
-import '../../../core/providers/app_provider.dart';
 import '../../../core/theme/app_colors.dart';
 
 class CameraPage extends StatefulWidget {
@@ -17,187 +16,248 @@ class CameraPage extends StatefulWidget {
 }
 
 class _CameraPageState extends State<CameraPage> {
-  final ImagePicker _picker = ImagePicker();
-  File? _photo;
+  final ReadingsApi api = ReadingsApi(ApiClient());
 
-  bool _loading = false;
-  String? _predCategory;
-  double? _predConfidence;
+  CameraController? _controller;
+  bool _loading = true;
+  bool _isCapturing = false;
+  bool _isProcessing = false;
 
-  Future<void> takePhoto() async {
-    final file = await _picker.pickImage(
-      source: ImageSource.camera,
-      imageQuality: 80,
-    );
-    if (file == null) return;
+  Timer? _captureTimer;
 
-    setState(() {
-      _photo = File(file.path);
-      _predCategory = null;
-      _predConfidence = null;
+  String _predCategory = '--';
+  double _predConfidence = 0.0;
+
+  String? _stableLabel;
+  int _stableCount = 0;
+
+  String? _lastConfirmedLabel;
+  DateTime? _lastConfirmedAt;
+
+  static const double confidenceThreshold = 0.60;
+  static const int requiredFrames = 5;
+  static const int cooldownSeconds = 3;
+  static const Duration captureInterval = Duration(milliseconds: 900);
+
+  @override
+  void initState() {
+    super.initState();
+    _initCamera();
+  }
+
+  Future<void> _initCamera() async {
+    try {
+      final cameras = await availableCameras();
+
+      final selectedCamera = cameras.firstWhere(
+        (c) => c.lensDirection == CameraLensDirection.back,
+        orElse: () => cameras.first,
+      );
+
+      _controller = CameraController(
+        selectedCamera,
+        ResolutionPreset.medium,
+        enableAudio: false,
+      );
+
+      await _controller!.initialize();
+      _startAutomaticCapture();
+
+      if (!mounted) return;
+      setState(() {
+        _loading = false;
+      });
+    } catch (e) {
+      debugPrint('Erro ao iniciar câmera: $e');
+
+      if (!mounted) return;
+      setState(() {
+        _loading = false;
+        _predCategory = 'Erro na câmera';
+      });
+    }
+  }
+
+  void _startAutomaticCapture() {
+    _captureTimer?.cancel();
+
+    _captureTimer = Timer.periodic(captureInterval, (_) async {
+      if (_isCapturing || _isProcessing) return;
+      if (_controller == null || !_controller!.value.isInitialized) return;
+
+      await _captureAndPredict();
     });
   }
 
-  Future<void> predictAndSave() async {
-    final appProvider = Provider.of<AppProvider>(context, listen: false);
+  Future<void> _captureAndPredict() async {
+    if (_controller == null) return;
 
-    if (appProvider.activeTeam == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Selecione uma equipe antes de registrar leituras'),
-        ),
-      );
-      return;
-    }
-
-    if (_photo == null) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(const SnackBar(content: Text('Tire uma foto antes')));
-      return;
-    }
-
-    setState(() => _loading = true);
+    _isCapturing = true;
 
     try {
-      final client = ApiClient();
-      final api = ReadingsApi(client);
+      final XFile xfile = await _controller!.takePicture();
+      final file = File(xfile.path);
 
-      final pred = await api.predict(_photo!);
-      final category = pred['category'] as String;
-      final confidence = (pred['confidence'] as num).toDouble();
-      final imagePath = pred['image_path'] as String?;
+      _isProcessing = true;
+
+      final result = await api.predict(file);
+
+      if (!mounted) return;
 
       setState(() {
-        _predCategory = category;
-        _predConfidence = confidence;
+        _predCategory = result.category;
+        _predConfidence = result.confidence;
       });
 
-      await api.createReading(
-        teamId: appProvider.activeTeam!.id,
-        category: category,
-        confidence: confidence,
-        imagePath: imagePath,
+      _handlePrediction(
+        category: result.category,
+        confidence: result.confidence,
       );
 
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          backgroundColor: AppColors.green,
-          content: Text('Salvo: $category (conf: $confidence)'),
-        ),
-      );
+      try {
+        if (await file.exists()) {
+          await file.delete();
+        }
+      } catch (_) {}
     } catch (e) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text('Erro: $e')));
+      debugPrint('Erro ao capturar/predizer: $e');
     } finally {
-      setState(() => _loading = false);
+      _isCapturing = false;
+      _isProcessing = false;
     }
+  }
+
+  void _handlePrediction({
+    required String category,
+    required double confidence,
+  }) {
+    if (confidence < confidenceThreshold) {
+      setState(() {
+        _stableLabel = null;
+        _stableCount = 0;
+      });
+      return;
+    }
+
+    if (_stableLabel == category) {
+      setState(() {
+        _stableCount++;
+      });
+    } else {
+      setState(() {
+        _stableLabel = category;
+        _stableCount = 1;
+      });
+    }
+
+    if (_stableCount >= requiredFrames) {
+      setState(() {
+        _stableCount = 0;
+      });
+
+      _confirmReading(
+        category: category,
+        confidence: confidence,
+      );
+    }
+  }
+
+  void _confirmReading({
+    required String category,
+    required double confidence,
+  }) {
+    final now = DateTime.now();
+
+    if (_lastConfirmedLabel == category &&
+        _lastConfirmedAt != null &&
+        now.difference(_lastConfirmedAt!).inSeconds <= cooldownSeconds) {
+      return;
+    }
+
+    _lastConfirmedLabel = category;
+    _lastConfirmedAt = now;
+
+    if (!mounted) return;
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(
+          'Leitura confirmada: $category (${(confidence * 100).toStringAsFixed(0)}%)',
+        ),
+        duration: const Duration(seconds: 1),
+      ),
+    );
+  }
+
+  @override
+  void dispose() {
+    _captureTimer?.cancel();
+    _controller?.dispose();
+    super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    final appProvider = Provider.of<AppProvider>(context);
+    if (_loading || _controller == null || !_controller!.value.isInitialized) {
+      return const Scaffold(
+        body: Center(
+          child: CircularProgressIndicator(),
+        ),
+      );
+    }
 
     return Scaffold(
+      backgroundColor: Colors.black,
       appBar: AppBar(
-        title: const Text('Leitura pela Câmera'),
-        centerTitle: true,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
-          onPressed: () =>
-              Navigator.pushReplacementNamed(context, appProvider.homeRoute),
-        ),
+        title: const Text('Leitura Automática'),
+        backgroundColor: AppColors.primary,
       ),
-      body: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          children: [
-            Card(
-              child: ListTile(
-                leading: const Icon(Icons.groups),
-                title: const Text('Equipe ativa'),
-                subtitle: Text(appProvider.activeTeam?.name ?? 'Nenhuma'),
+      body: Stack(
+        children: [
+          Positioned.fill(
+            child: CameraPreview(_controller!),
+          ),
+          Positioned(
+            left: 16,
+            right: 16,
+            bottom: 24,
+            child: Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: Colors.black.withOpacity(0.65),
+                borderRadius: BorderRadius.circular(16),
               ),
-            ),
-            const SizedBox(height: 12),
-
-            if (_photo != null)
-              Card(
-                child: Padding(
-                  padding: const EdgeInsets.all(12),
-                  child: Column(
-                    children: [
-                      ClipRRect(
-                        borderRadius: BorderRadius.circular(12),
-                        child: Image.file(
-                          _photo!,
-                          height: 240,
-                          width: double.infinity,
-                          fit: BoxFit.cover,
-                        ),
-                      ),
-                      const SizedBox(height: 12),
-                      if (_predCategory != null)
-                        Text(
-                          'Predição: $_predCategory (conf: ${_predConfidence?.toStringAsFixed(2)})',
-                          style: const TextStyle(fontWeight: FontWeight.bold),
-                        ),
-                      const SizedBox(height: 12),
-                      SizedBox(
-                        width: double.infinity,
-                        height: 48,
-                        child: ElevatedButton.icon(
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: AppColors.primary,
-                          ),
-                          icon: _loading
-                              ? const SizedBox(
-                                  width: 18,
-                                  height: 18,
-                                  child: CircularProgressIndicator(
-                                    strokeWidth: 2,
-                                  ),
-                                )
-                              : const Icon(Icons.auto_awesome),
-                          label: Text(
-                            _loading ? 'Processando...' : 'Enviar e Registrar',
-                          ),
-                          onPressed: _loading ? null : predictAndSave,
-                        ),
-                      ),
-                    ],
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    'Categoria: $_predCategory',
+                    style: const TextStyle(
+                      fontSize: 18,
+                      color: Colors.white,
+                    ),
                   ),
-                ),
-              )
-            else
-              Card(
-                child: ListTile(
-                  leading: const Icon(Icons.camera_alt, size: 30),
-                  title: const Text('Tirar foto'),
-                  subtitle: const Text('Abrir câmera e capturar leitura'),
-                  onTap: takePhoto,
-                ),
-              ),
-
-            const SizedBox(height: 12),
-
-            SizedBox(
-              width: double.infinity,
-              height: 48,
-              child: ElevatedButton.icon(
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: AppColors.primary,
-                ),
-                icon: const Icon(Icons.camera_alt),
-                label: Text(
-                  _photo == null ? 'Abrir câmera' : 'Tirar outra foto',
-                ),
-                onPressed: takePhoto,
+                  const SizedBox(height: 8),
+                  Text(
+                    'Confiança: ${(_predConfidence * 100).toStringAsFixed(1)}%',
+                    style: const TextStyle(
+                      fontSize: 16,
+                      color: Colors.white,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    'Estabilidade: $_stableCount / $requiredFrames',
+                    style: const TextStyle(
+                      fontSize: 14,
+                      color: Colors.white70,
+                    ),
+                  ),
+                ],
               ),
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }

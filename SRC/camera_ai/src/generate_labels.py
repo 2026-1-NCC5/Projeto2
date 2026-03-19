@@ -6,7 +6,9 @@ BASE_LABEL_DIR = "dataset/labels"
 class_map = {
     "arroz": 0,
     "feijao": 1,
-    "outros": 2
+    "outros": 2,
+    "cafe": 3,
+    "acucar":4
 }
 
 for split in ["train", "val"]:

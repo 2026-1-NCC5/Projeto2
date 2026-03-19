@@ -1,26 +1,28 @@
 from datetime import datetime
 from pydantic import BaseModel
-from app.models.enums import FoodCategory
 
 
 class PredictOut(BaseModel):
-    category: FoodCategory
+    category: str
     confidence: float
+    image_path: str | None = None
 
 
-class ReadingCreateIn(BaseModel):
-    team_id: int | None
-    category: FoodCategory
+class ReadingCreate(BaseModel):
+    team_id: int | None = None
+    category: str
     confidence: float | None = None
+    image_path: str | None = None
 
 
-class ReadingOut(BaseModel):
+class ReadingResponse(BaseModel):
     id: int
-    team_id: int | None
-    user_id: int | None
-    category: FoodCategory
-    confidence: float | None
-    created_at: datetime
+    team_id: int | None = None
+    user_id: int | None = None
+    category: str
+    confidence: float | None = None
+    image_path: str | None = None
+    created_at: datetime | None = None
 
     class Config:
         from_attributes = True

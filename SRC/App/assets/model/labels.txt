@@ -1,0 +1,5 @@
+0 arroz
+1 feijao
+2 outros
+3 cafe
+4 acucar

@@ -1,4 +1,4 @@
-name: app
+name: Scanner_AI
 description: "A new Flutter project."
 # The following line prevents the package from being accidentally published to
 # pub.dev using `flutter pub publish`. This is preferred for private packages.
@@ -41,6 +41,10 @@ dependencies:
   cupertino_icons: ^1.0.8
   provider: ^6.1.5+1
   path_provider: ^2.1.4
+  tflite_flutter: ^0.12.1
+  image: ^4.8.0
+  camera: ^0.12.0
+  flutter_launcher_icons: ^0.14.4
 
 dev_dependencies:
   flutter_test:
@@ -53,6 +57,10 @@ dev_dependencies:
   # rules and activating additional ones.
   flutter_lints: ^6.0.0
 
+flutter_launcher_icons:
+  android: true
+  ios: true
+  image_path: "assets/images/logo.png"
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec
 
@@ -66,6 +74,9 @@ flutter:
 
   assets:
     - assets/images/foods_bg.png
+    - assets/model/model.tflite
+    - assets/model/labels.txt
+    - assets/images/logo.png
 
   # To add assets to your application, add an assets section, like this:
   # assets:
