@@ -5,6 +5,7 @@ from app.db.init_db import init_db
 from app.routers.auth import router as auth_router
 from app.routers.teams import router as teams_router
 from app.routers.readings import router as readings_router
+from app.routers.users import router as users_router
 
 app = FastAPI(title="Lideranças Empáticas API")
 
@@ -25,6 +26,7 @@ app.add_middleware(
 app.include_router(auth_router)
 app.include_router(teams_router)
 app.include_router(readings_router)
+app.include_router(users_router)
 
 
 @app.get("/")

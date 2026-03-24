@@ -2,17 +2,22 @@ from pydantic import BaseModel, EmailStr
 from typing import Optional
 
 
-class RegisterRequest(BaseModel):
+class UserCreateRequest(BaseModel):
     name: str
     email: EmailStr
     password: str
     role: str
     team_id: Optional[int] = None
+    active: bool = True
 
 
-class LoginRequest(BaseModel):
-    email: EmailStr
-    password: str
+class UserUpdateRequest(BaseModel):
+    name: Optional[str] = None
+    email: Optional[EmailStr] = None
+    password: Optional[str] = None
+    role: Optional[str] = None
+    team_id: Optional[int] = None
+    active: Optional[bool] = None
 
 
 class UserResponse(BaseModel):
@@ -25,8 +30,3 @@ class UserResponse(BaseModel):
 
     class Config:
         from_attributes = True
-
-
-class TokenResponse(BaseModel):
-    access_token: str
-    token_type: str = "bearer"
