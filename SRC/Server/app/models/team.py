@@ -1,14 +1,12 @@
-from sqlalchemy import Column, Integer, String, DateTime
+from sqlalchemy import Column, Integer, String, DateTime, Boolean
 from sqlalchemy.sql import func
 from app.db.database import Base
 
 
-class User(Base):
-    __tablename__ = "users"
+class Team(Base):
+    __tablename__ = "teams"
 
     id = Column(Integer, primary_key=True, index=True)
-    name = Column(String(120), nullable=False)
-    email = Column(String(120), unique=True, index=True, nullable=False)
-    password_hash = Column(String(255), nullable=False)
-    role = Column(String(30), nullable=False, default="operador")
+    name = Column(String(120), nullable=False, unique=True)
+    active = Column(Boolean, default=True)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
