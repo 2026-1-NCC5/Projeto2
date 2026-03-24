@@ -1,10 +1,9 @@
-from fastapi import APIRouter, Depends, UploadFile, File, HTTPException, Header
+from fastapi import APIRouter, Depends, Header
 from sqlalchemy.orm import Session
 
 from app.db.database import get_db
 from app.models.reading import Reading
 from app.schemas.reading import ReadingCreate, ReadingResponse
-from app.services.inference import save_upload, run_inference
 from app.core.security import decode_access_token
 
 router = APIRouter(prefix="/api/readings", tags=["Readings"])
@@ -18,14 +17,6 @@ def get_current_user_id(authorization: str = Header(default="")):
     if not payload:
         return None
     return int(payload["sub"])
-
-
-@router.post("/predict")
-async def predict(image: UploadFile = File(...)):
-    content = await image.read()
-    image_path = save_upload(content, image.filename)
-    result = run_inference(image_path)
-    return result
 
 
 @router.post("", response_model=ReadingResponse)

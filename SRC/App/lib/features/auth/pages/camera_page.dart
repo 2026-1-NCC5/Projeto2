@@ -105,13 +105,13 @@ class _CameraPageState extends State<CameraPage> {
       if (!mounted) return;
 
       setState(() {
-        _predCategory = result.category;
-        _predConfidence = result.confidence;
+        _predCategory = result['category'];
+        _predConfidence = (result['confidence'] as num).toDouble();
       });
 
       _handlePrediction(
-        category: result.category,
-        confidence: result.confidence,
+        category: result['category'],
+        confidence: (result['confidence'] as num).toDouble(),
       );
 
       try {
@@ -155,17 +155,11 @@ class _CameraPageState extends State<CameraPage> {
         _stableCount = 0;
       });
 
-      _confirmReading(
-        category: category,
-        confidence: confidence,
-      );
+      _confirmReading(category: category, confidence: confidence);
     }
   }
 
-  void _confirmReading({
-    required String category,
-    required double confidence,
-  }) {
+  void _confirmReading({required String category, required double confidence}) {
     final now = DateTime.now();
 
     if (_lastConfirmedLabel == category &&
@@ -199,11 +193,7 @@ class _CameraPageState extends State<CameraPage> {
   @override
   Widget build(BuildContext context) {
     if (_loading || _controller == null || !_controller!.value.isInitialized) {
-      return const Scaffold(
-        body: Center(
-          child: CircularProgressIndicator(),
-        ),
-      );
+      return const Scaffold(body: Center(child: CircularProgressIndicator()));
     }
 
     return Scaffold(
@@ -214,9 +204,7 @@ class _CameraPageState extends State<CameraPage> {
       ),
       body: Stack(
         children: [
-          Positioned.fill(
-            child: CameraPreview(_controller!),
-          ),
+          Positioned.fill(child: CameraPreview(_controller!)),
           Positioned(
             left: 16,
             right: 16,
@@ -232,26 +220,17 @@ class _CameraPageState extends State<CameraPage> {
                 children: [
                   Text(
                     'Categoria: $_predCategory',
-                    style: const TextStyle(
-                      fontSize: 18,
-                      color: Colors.white,
-                    ),
+                    style: const TextStyle(fontSize: 18, color: Colors.white),
                   ),
                   const SizedBox(height: 8),
                   Text(
                     'Confiança: ${(_predConfidence * 100).toStringAsFixed(1)}%',
-                    style: const TextStyle(
-                      fontSize: 16,
-                      color: Colors.white,
-                    ),
+                    style: const TextStyle(fontSize: 16, color: Colors.white),
                   ),
                   const SizedBox(height: 8),
                   Text(
                     'Estabilidade: $_stableCount / $requiredFrames',
-                    style: const TextStyle(
-                      fontSize: 14,
-                      color: Colors.white70,
-                    ),
+                    style: const TextStyle(fontSize: 14, color: Colors.white70),
                   ),
                 ],
               ),
