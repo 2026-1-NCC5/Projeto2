@@ -184,7 +184,7 @@ class _RegisterPageState extends State<RegisterPage> {
                         const SizedBox(height: 16),
 
                         DropdownButtonFormField<UserRole>(
-                          value: selectedRole,
+                          initialValue: selectedRole,
                           decoration: const InputDecoration(
                             labelText: 'Cargo',
                             border: OutlineInputBorder(),

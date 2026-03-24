@@ -91,7 +91,7 @@ class _ManageGoalsPageState extends State<ManageGoalsPage> {
                 child: Column(
                   children: [
                     DropdownButtonFormField<String>(
-                      value: selectedTeam,
+                      initialValue: selectedTeam,
                       decoration: const InputDecoration(
                         labelText: 'Equipe',
                         border: OutlineInputBorder(),
@@ -106,7 +106,7 @@ class _ManageGoalsPageState extends State<ManageGoalsPage> {
                     ),
                     const SizedBox(height: 12),
                     DropdownButtonFormField<FoodCategory>(
-                      value: selectedCategory,
+                      initialValue: selectedCategory,
                       decoration: const InputDecoration(
                         labelText: 'Categoria',
                         border: OutlineInputBorder(),
@@ -153,7 +153,7 @@ class _ManageGoalsPageState extends State<ManageGoalsPage> {
                   ? const Center(child: Text('Nenhuma meta cadastrada'))
                   : ListView.separated(
                       itemCount: appProvider.goals.length,
-                      separatorBuilder: (_, __) => const SizedBox(height: 8),
+                      separatorBuilder: (_, _) => const SizedBox(height: 8),
                       itemBuilder: (context, index) {
                         final g = appProvider.goals[index];
                         final current = appProvider.countReadingsFor(

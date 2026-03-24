@@ -121,7 +121,7 @@ class _DataTablePageState extends State<DataTablePage> {
                       children: [
                         Expanded(
                           child: DropdownButtonFormField<String>(
-                            value: teamFilter,
+                            initialValue: teamFilter,
                             decoration: const InputDecoration(
                               labelText: 'Equipe',
                               border: OutlineInputBorder(),
@@ -141,7 +141,7 @@ class _DataTablePageState extends State<DataTablePage> {
                         const SizedBox(width: 12),
                         Expanded(
                           child: DropdownButtonFormField<String>(
-                            value: categoryFilter,
+                            initialValue: categoryFilter,
                             decoration: const InputDecoration(
                               labelText: 'Categoria',
                               border: OutlineInputBorder(),

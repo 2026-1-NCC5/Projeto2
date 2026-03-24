@@ -43,7 +43,7 @@ class GoalsPage extends StatelessWidget {
                   ? const Center(child: Text('Nenhuma meta encontrada'))
                   : ListView.separated(
                       itemCount: goalsToShow.length,
-                      separatorBuilder: (_, __) => const SizedBox(height: 8),
+                      separatorBuilder: (_, _) => const SizedBox(height: 8),
                       itemBuilder: (context, index) {
                         final g = goalsToShow[index];
                         final current = appProvider.countReadingsFor(

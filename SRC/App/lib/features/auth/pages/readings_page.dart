@@ -34,7 +34,7 @@ class ReadingsPage extends StatelessWidget {
             ? const Center(child: Text('Nenhuma leitura registrada'))
             : ListView.separated(
                 itemCount: appProvider.readings.length,
-                separatorBuilder: (_, __) => const SizedBox(height: 8),
+                separatorBuilder: (_, _) => const SizedBox(height: 8),
                 itemBuilder: (context, index) {
                   final r = appProvider.readings[index];
                   return Card(
