@@ -36,8 +36,8 @@ class AdminHomePage extends StatelessWidget {
                 leading: const Icon(Icons.person_add, size: 30),
                 title: const Text('Criar Usuários / Coordenadores'),
                 subtitle: const Text('Gerenciar contas do sistema'),
-                onTap: () => Navigator.pushReplacementNamed(context, AppRoutes.manageOperators),
-              ),
+                onTap: () => Navigator.pushReplacementNamed(context, AppRoutes.manageUsers),              
+                ),
             ),
             Card(
               child: ListTile(

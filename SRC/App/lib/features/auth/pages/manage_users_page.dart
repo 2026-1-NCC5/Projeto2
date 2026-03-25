@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import '../../../core/api/api_client.dart';
 import '../../../core/api/users_api.dart';
 import '../../../core/providers/app_provider.dart';
+import '../../../core/routes/app_routes.dart';
 import '../../../core/theme/app_colors.dart';
 
 class ManageUsersPage extends StatefulWidget {
@@ -82,8 +83,13 @@ class _ManageUsersPageState extends State<ManageUsersPage> {
       nameController.clear();
       emailController.clear();
       passwordController.clear();
-      selectedRole = 'operador';
-      active = true;
+
+      if (mounted) {
+        setState(() {
+          selectedRole = 'operador';
+          active = true;
+        });
+      }
 
       await loadUsers();
 
@@ -97,9 +103,9 @@ class _ManageUsersPageState extends State<ManageUsersPage> {
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text('Erro ao criar usuário: $e')));
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Erro ao criar usuário: $e')),
+        );
       }
     } finally {
       if (mounted) setState(() => loading = false);
@@ -123,9 +129,9 @@ class _ManageUsersPageState extends State<ManageUsersPage> {
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text('Erro ao excluir usuário: $e')));
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Erro ao excluir usuário: $e')),
+        );
       }
     } finally {
       if (mounted) setState(() => loading = false);
@@ -165,8 +171,26 @@ class _ManageUsersPageState extends State<ManageUsersPage> {
 
   @override
   Widget build(BuildContext context) {
+    final appProvider = Provider.of<AppProvider>(context, listen: false);
+
     return Scaffold(
-      appBar: AppBar(title: const Text('Gerenciar Usuários')),
+      appBar: AppBar(
+        title: const Text('Gerenciar Usuários'),
+        centerTitle: true,
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back),
+          onPressed: () => Navigator.pushReplacementNamed(
+            context,
+            appProvider.homeRoute,
+          ),
+        ),
+        actions: [
+          IconButton(
+            onPressed: loading ? null : loadUsers,
+            icon: const Icon(Icons.refresh),
+          ),
+        ],
+      ),
       body: Padding(
         padding: const EdgeInsets.all(16),
         child: Column(
@@ -204,7 +228,7 @@ class _ManageUsersPageState extends State<ManageUsersPage> {
                     ),
                     const SizedBox(height: 8),
                     DropdownButtonFormField<String>(
-                      initialValue: selectedRole,
+                      value: selectedRole,
                       items: const [
                         DropdownMenuItem(
                           value: 'operador',
@@ -214,7 +238,10 @@ class _ManageUsersPageState extends State<ManageUsersPage> {
                           value: 'coordenador',
                           child: Text('Coordenador'),
                         ),
-                        DropdownMenuItem(value: 'admin', child: Text('Admin')),
+                        DropdownMenuItem(
+                          value: 'admin',
+                          child: Text('Admin'),
+                        ),
                       ],
                       onChanged: (value) {
                         if (value != null) {
@@ -246,58 +273,58 @@ class _ManageUsersPageState extends State<ManageUsersPage> {
               child: loading
                   ? const Center(child: CircularProgressIndicator())
                   : users.isEmpty
-                  ? const Center(child: Text('Nenhum usuário encontrado'))
-                  : ListView.builder(
-                      itemCount: users.length,
-                      itemBuilder: (context, index) {
-                        final user = users[index];
-                        return Card(
-                          child: ListTile(
-                            title: Text(user['name'] ?? ''),
-                            subtitle: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(user['email'] ?? ''),
-                                const SizedBox(height: 4),
-                                Row(
+                      ? const Center(child: Text('Nenhum usuário encontrado'))
+                      : ListView.builder(
+                          itemCount: users.length,
+                          itemBuilder: (context, index) {
+                            final user = users[index];
+                            return Card(
+                              child: ListTile(
+                                title: Text(user['name'] ?? ''),
+                                subtitle: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
-                                    Chip(
-                                      label: Text(user['role'] ?? ''),
-                                      backgroundColor: roleColor(
-                                        user['role'] ?? '',
-                                      ),
-                                    ),
-                                    const SizedBox(width: 8),
-                                    Chip(
-                                      label: Text(
-                                        user['active'] == true
-                                            ? 'Ativo'
-                                            : 'Inativo',
-                                      ),
+                                    Text(user['email'] ?? ''),
+                                    const SizedBox(height: 4),
+                                    Row(
+                                      children: [
+                                        Chip(
+                                          label: Text(user['role'] ?? ''),
+                                          backgroundColor: roleColor(
+                                            user['role'] ?? '',
+                                          ),
+                                        ),
+                                        const SizedBox(width: 8),
+                                        Chip(
+                                          label: Text(
+                                            user['active'] == true
+                                                ? 'Ativo'
+                                                : 'Inativo',
+                                          ),
+                                        ),
+                                      ],
                                     ),
                                   ],
                                 ),
-                              ],
-                            ),
-                            trailing: Wrap(
-                              spacing: 8,
-                              children: [
-                                IconButton(
-                                  tooltip: 'Ativar/Inativar',
-                                  onPressed: () => toggleActive(user),
-                                  icon: const Icon(Icons.swap_horiz),
+                                trailing: Wrap(
+                                  spacing: 8,
+                                  children: [
+                                    IconButton(
+                                      tooltip: 'Ativar/Inativar',
+                                      onPressed: () => toggleActive(user),
+                                      icon: const Icon(Icons.swap_horiz),
+                                    ),
+                                    IconButton(
+                                      tooltip: 'Excluir',
+                                      onPressed: () => deleteUser(user['id']),
+                                      icon: const Icon(Icons.delete),
+                                    ),
+                                  ],
                                 ),
-                                IconButton(
-                                  tooltip: 'Excluir',
-                                  onPressed: () => deleteUser(user['id']),
-                                  icon: const Icon(Icons.delete),
-                                ),
-                              ],
-                            ),
-                          ),
-                        );
-                      },
-                    ),
+                              ),
+                            );
+                          },
+                        ),
             ),
           ],
         ),

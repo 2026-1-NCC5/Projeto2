@@ -42,12 +42,7 @@ class ApiClient {
     );
   }
 
-  Future<http.Response> delete(String path, {Map<String, String>? headers}) {
-    final uri = Uri.parse('$baseUrl$path');
-    return http.delete(uri, headers: _defaultHeaders(headers));
-  }
-
-    Future<http.Response> put(
+  Future<http.Response> put(
     String path, {
     Object? body,
     Map<String, String>? headers,
@@ -58,5 +53,10 @@ class ApiClient {
       headers: _defaultHeaders(headers),
       body: body == null ? null : (body is String ? body : jsonEncode(body)),
     );
+  }
+
+  Future<http.Response> delete(String path, {Map<String, String>? headers}) {
+    final uri = Uri.parse('$baseUrl$path');
+    return http.delete(uri, headers: _defaultHeaders(headers));
   }
 }

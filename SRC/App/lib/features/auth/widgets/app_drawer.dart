@@ -27,7 +27,6 @@ class AppDrawer extends StatelessWidget {
     return Drawer(
       child: Column(
         children: [
-          // ===== MINI PERFIL =====
           Container(
             width: double.infinity,
             color: AppColors.primary,
@@ -82,17 +81,64 @@ class AppDrawer extends StatelessWidget {
 
           const Divider(),
 
-          // ===== EDITAR PERFIL =====
           ListTile(
             leading: const Icon(Icons.edit),
             title: const Text('Editar Perfil'),
             onTap: () => _go(context, AppRoutes.editProfile),
           ),
 
+          if (appProvider.isAdmin) ...[
+            ListTile(
+              leading: const Icon(Icons.people),
+              title: const Text('Gerenciar Usuários'),
+              onTap: () => _go(context, AppRoutes.manageUsers),
+            ),
+            ListTile(
+              leading: const Icon(Icons.groups),
+              title: const Text('Gerenciar Equipes'),
+              onTap: () => _go(context, AppRoutes.manageTeams),
+            ),
+            ListTile(
+              leading: const Icon(Icons.flag),
+              title: const Text('Gerenciar Metas'),
+              onTap: () => _go(context, AppRoutes.manageGoals),
+            ),
+          ],
+
+          if (appProvider.isCoordenador || appProvider.isAdmin) ...[
+            ListTile(
+              leading: const Icon(Icons.table_chart),
+              title: const Text('Tabela de Dados'),
+              onTap: () => _go(context, AppRoutes.dataTable),
+            ),
+            ListTile(
+              leading: const Icon(Icons.download),
+              title: const Text('Exportar'),
+              onTap: () => _go(context, AppRoutes.export),
+            ),
+          ],
+
+          if (appProvider.isOperador) ...[
+            ListTile(
+              leading: const Icon(Icons.groups_2),
+              title: const Text('Selecionar Equipe'),
+              onTap: () => _go(context, AppRoutes.team),
+            ),
+            ListTile(
+              leading: const Icon(Icons.camera_alt),
+              title: const Text('Câmera'),
+              onTap: () => _go(context, AppRoutes.camera),
+            ),
+            ListTile(
+              leading: const Icon(Icons.history),
+              title: const Text('Leituras'),
+              onTap: () => _go(context, AppRoutes.readings),
+            ),
+          ],
+
           const Spacer(),
           const Divider(),
 
-          // ===== LOGOUT =====
           ListTile(
             leading: const Icon(Icons.logout),
             title: const Text('Sair da conta'),

@@ -24,7 +24,7 @@ import '../../features/auth/pages/manage_teams_page.dart';
 // Admin
 import '../../features/auth/pages/manage_goals_page.dart';
 import '../../features/auth/pages/manage_operators_page.dart';
-
+import '../../features/auth/pages/manage_users_page.dart';
 
 class AppRoutes {
   static const splash = '/';
@@ -75,4 +75,5 @@ final Map<String, WidgetBuilder> appRoutes = {
 
   AppRoutes.manageGoals: (_) => const ManageGoalsPage(),
   AppRoutes.manageOperators: (_) => const ManageOperatorsPage(),
+  AppRoutes.manageUsers: (_) => const ManageUsersPage(),
 };

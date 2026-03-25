@@ -3,9 +3,11 @@ import 'dart:io';
 
 import 'package:camera/camera.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
 import '../../../core/api/api_client.dart';
 import '../../../core/api/readings_api.dart';
+import '../../../core/providers/app_provider.dart';
 import '../../../core/theme/app_colors.dart';
 
 class CameraPage extends StatefulWidget {
@@ -16,8 +18,6 @@ class CameraPage extends StatefulWidget {
 }
 
 class _CameraPageState extends State<CameraPage> {
-  final ReadingsApi api = ReadingsApi(ApiClient());
-
   CameraController? _controller;
   bool _loading = true;
   bool _isCapturing = false;
@@ -43,6 +43,13 @@ class _CameraPageState extends State<CameraPage> {
   void initState() {
     super.initState();
     _initCamera();
+  }
+
+  ReadingsApi _api(BuildContext context) {
+    final appProvider = Provider.of<AppProvider>(context, listen: false);
+    final client = ApiClient();
+    client.setToken(appProvider.token);
+    return ReadingsApi(client);
   }
 
   Future<void> _initCamera() async {
@@ -100,7 +107,7 @@ class _CameraPageState extends State<CameraPage> {
 
       _isProcessing = true;
 
-      final result = await api.predict(file);
+      final result = await _api(context).predict(file);
 
       if (!mounted) return;
 
@@ -159,7 +166,11 @@ class _CameraPageState extends State<CameraPage> {
     }
   }
 
-  void _confirmReading({required String category, required double confidence}) {
+  Future<void> _confirmReading({
+    required String category,
+    required double confidence,
+  }) async {
+    final appProvider = Provider.of<AppProvider>(context, listen: false);
     final now = DateTime.now();
 
     if (_lastConfirmedLabel == category &&
@@ -168,19 +179,44 @@ class _CameraPageState extends State<CameraPage> {
       return;
     }
 
+    if (appProvider.activeTeam == null) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Selecione uma equipe antes de registrar leituras'),
+        ),
+      );
+      return;
+    }
+
     _lastConfirmedLabel = category;
     _lastConfirmedAt = now;
 
-    if (!mounted) return;
+    try {
+      await _api(context).createReading(
+        teamId: appProvider.activeTeam!.id,
+        category: category,
+        confidence: confidence,
+        imagePath: null,
+      );
 
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(
-          'Leitura confirmada: $category (${(confidence * 100).toStringAsFixed(0)}%)',
+      if (!mounted) return;
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            'Leitura confirmada: $category (${(confidence * 100).toStringAsFixed(0)}%)',
+          ),
+          duration: const Duration(seconds: 1),
         ),
-        duration: const Duration(seconds: 1),
-      ),
-    );
+      );
+    } catch (e) {
+      if (!mounted) return;
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Erro ao salvar leitura: $e')),
+      );
+    }
   }
 
   @override
