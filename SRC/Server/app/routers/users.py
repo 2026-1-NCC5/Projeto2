@@ -5,18 +5,23 @@ from app.db.database import get_db
 from app.models.user import User
 from app.schemas.user import UserCreateRequest, UserUpdateRequest, UserResponse
 from app.core.security import hash_password, decode_access_token
+from fastapi import Security
+from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 
 router = APIRouter(prefix="/api/users", tags=["Users"])
 
 
-def get_current_payload(authorization: str = Header(default="")):
-    if not authorization.startswith("Bearer "):
-        raise HTTPException(status_code=401, detail="Token ausente")
+security = HTTPBearer()
 
-    token = authorization.replace("Bearer ", "")
+def get_current_payload(
+    credentials: HTTPAuthorizationCredentials = Security(security)
+):
+    token = credentials.credentials
     payload = decode_access_token(token)
+
     if not payload:
         raise HTTPException(status_code=401, detail="Token inválido")
+
     return payload
 
 
@@ -28,9 +33,9 @@ def require_admin(payload: dict):
 @router.get("", response_model=list[UserResponse])
 def list_users(
     db: Session = Depends(get_db),
-    authorization: str = Header(default="")
+    payload: dict = Depends(get_current_payload)
 ):
-    payload = get_current_payload(authorization)
+    
     require_admin(payload)
 
     return db.query(User).order_by(User.id.asc()).all()
@@ -40,9 +45,9 @@ def list_users(
 def create_user(
     data: UserCreateRequest,
     db: Session = Depends(get_db),
-    authorization: str = Header(default="")
+    payload: dict = Depends(get_current_payload)
 ):
-    payload = get_current_payload(authorization)
+    
     require_admin(payload)
 
     exists = db.query(User).filter(User.email == data.email).first()
@@ -68,9 +73,9 @@ def update_user(
     user_id: int,
     data: UserUpdateRequest,
     db: Session = Depends(get_db),
-    authorization: str = Header(default="")
+    payload: dict = Depends(get_current_payload)
 ):
-    payload = get_current_payload(authorization)
+    
     require_admin(payload)
 
     user = db.query(User).filter(User.id == user_id).first()
@@ -99,9 +104,9 @@ def update_user(
 def delete_user(
     user_id: int,
     db: Session = Depends(get_db),
-    authorization: str = Header(default="")
+    payload: dict = Depends(get_current_payload)
 ):
-    payload = get_current_payload(authorization)
+    
     require_admin(payload)
 
     user = db.query(User).filter(User.id == user_id).first()
