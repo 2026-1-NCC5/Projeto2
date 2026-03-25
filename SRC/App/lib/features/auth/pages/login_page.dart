@@ -4,8 +4,6 @@ import 'package:provider/provider.dart';
 import '../../../core/providers/app_provider.dart';
 import '../../../core/routes/app_routes.dart';
 import '../../../core/theme/app_colors.dart';
-
-// ✅ backend client
 import '../../../core/api/api_client.dart';
 import '../../../core/api/auth_api.dart';
 
@@ -30,49 +28,57 @@ class _LoginPageState extends State<LoginPage> {
   }
 
   Future<void> login() async {
-  final appProvider = Provider.of<AppProvider>(context, listen: false);
+    final appProvider = Provider.of<AppProvider>(context, listen: false);
 
-  final email = emailController.text.trim();
-  final senha = senhaController.text.trim();
+    final email = emailController.text.trim();
+    final senha = senhaController.text.trim();
 
-  if (email.isEmpty || senha.isEmpty) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Preencha email e senha')),
-    );
-    return;
+    if (email.isEmpty || senha.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Preencha email e senha')),
+      );
+      return;
+    }
+
+    setState(() => loading = true);
+
+    try {
+      final client = ApiClient();
+      final auth = AuthApi(client);
+
+      final token = await auth.login(email: email, password: senha);
+
+      appProvider.setToken(token);
+      client.setToken(token);
+
+      final me = await auth.me();
+
+      appProvider.setUserFromBackend(
+        name: me['name'],
+        email: me['email'],
+        role: me['role'],
+      );
+
+      if (!mounted) return;
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          backgroundColor: AppColors.green,
+          content: const Text('Login realizado com sucesso'),
+        ),
+      );
+
+      Navigator.pushReplacementNamed(context, appProvider.homeRoute);
+    } catch (e) {
+      if (!mounted) return;
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Erro no login: $e')),
+      );
+    } finally {
+      if (mounted) setState(() => loading = false);
+    }
   }
-
-  setState(() => loading = true);
-
-  try {
-    final client = ApiClient();
-    final auth = AuthApi(client);
-
-    await auth.login(email: email, password: senha);
-
-    final me = await auth.me();
-    appProvider.setUserFromBackend(
-      name: me['name'],
-      email: me['email'],
-      role: me['role'],
-    );
-
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        backgroundColor: AppColors.green,
-        content: const Text('Login realizado com sucesso'),
-      ),
-    );
-
-    Navigator.pushReplacementNamed(context, appProvider.homeRoute);
-  } catch (e) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('Erro no login: $e')),
-    );
-  } finally {
-    if (mounted) setState(() => loading = false);
-  }
-}
 
   @override
   Widget build(BuildContext context) {
@@ -116,7 +122,7 @@ class _LoginPageState extends State<LoginPage> {
                         BoxShadow(
                           color: Colors.black.withOpacity(0.2),
                           blurRadius: 25,
-                        )
+                        ),
                       ],
                     ),
                     child: Column(
@@ -160,7 +166,9 @@ class _LoginPageState extends State<LoginPage> {
                                 ? const SizedBox(
                                     width: 20,
                                     height: 20,
-                                    child: CircularProgressIndicator(strokeWidth: 2),
+                                    child: CircularProgressIndicator(
+                                      strokeWidth: 2,
+                                    ),
                                   )
                                 : const Text(
                                     'Entrar',

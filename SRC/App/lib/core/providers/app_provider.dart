@@ -72,14 +72,15 @@ class Goal {
 }
 
 class AppProvider extends ChangeNotifier {
-  // ===== Perfil/Auth (MVP)
   UserRole _userRole = UserRole.operador;
   String _name = '';
   String _email = '';
+  String? _token;
 
   UserRole get userRole => _userRole;
   String get name => _name;
   String get email => _email;
+  String? get token => _token;
 
   bool get isAdmin => _userRole == UserRole.admin;
   bool get isCoordenador => _userRole == UserRole.coordenador;
@@ -96,13 +97,18 @@ class AppProvider extends ChangeNotifier {
     }
   }
 
+  void setToken(String? value) {
+    _token = value;
+    notifyListeners();
+  }
+
   void setUserFromBackend({
     required String name,
     required String email,
     required String role,
   }) {
-    _name = name;
-    _email = email;
+    _name = name.trim();
+    _email = email.trim();
 
     if (role == 'admin') {
       _userRole = UserRole.admin;
@@ -121,7 +127,6 @@ class AppProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  // ===== Equipes (backend/local)
   List<TeamLite> _teams = [];
   TeamLite? _activeTeam;
 
@@ -131,7 +136,6 @@ class AppProvider extends ChangeNotifier {
   void setTeams(List<Map<String, dynamic>> data) {
     _teams = data.map(TeamLite.fromMap).toList();
 
-    // se a ativa sumiu, limpa
     if (_activeTeam != null && !_teams.any((t) => t.id == _activeTeam!.id)) {
       _activeTeam = null;
     }
@@ -143,14 +147,10 @@ class AppProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  // ===== Leituras (local)
   final List<ReadingEvent> _readings = [];
   List<ReadingEvent> get readings => List.unmodifiable(_readings);
 
-  void addReading({
-    required FoodCategory category,
-    double? confidence,
-  }) {
+  void addReading({required FoodCategory category, double? confidence}) {
     final team = _activeTeam;
     if (team == null) return;
 
@@ -175,10 +175,11 @@ class AppProvider extends ChangeNotifier {
     required String teamName,
     required FoodCategory category,
   }) {
-    return _readings.where((r) => r.teamName == teamName && r.category == category).length;
+    return _readings
+        .where((r) => r.teamName == teamName && r.category == category)
+        .length;
   }
 
-  // ===== Metas (local)
   final List<Goal> _goals = [];
   List<Goal> get goals => List.unmodifiable(_goals);
 
@@ -191,7 +192,9 @@ class AppProvider extends ChangeNotifier {
     if (team.isEmpty) return;
 
     final t = team.first;
-    final idx = _goals.indexWhere((g) => g.teamId == t.id && g.category == category);
+    final idx = _goals.indexWhere(
+      (g) => g.teamId == t.id && g.category == category,
+    );
 
     final newGoal = Goal(
       teamId: t.id,
@@ -214,7 +217,6 @@ class AppProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  // ===== Export CSV
   String exportReadingsCsv({
     required String teamFilter,
     required String categoryFilter,
@@ -227,14 +229,21 @@ class AppProvider extends ChangeNotifier {
     final filtered = _readings.where((r) {
       final matchTeam = teamFilter == 'Todas' || r.teamName == teamFilter;
 
-      final matchCategory = categoryFilter == 'Todas' ||
+      final matchCategory =
+          categoryFilter == 'Todas' ||
           foodCategoryLabel(r.category) == categoryFilter;
 
-      final matchStart = startDate == null ||
-          r.timestamp.isAfter(DateTime(startDate.year, startDate.month, startDate.day));
+      final matchStart =
+          startDate == null ||
+          r.timestamp.isAfter(
+            DateTime(startDate.year, startDate.month, startDate.day),
+          );
 
-      final matchEnd = endDate == null ||
-          r.timestamp.isBefore(DateTime(endDate.year, endDate.month, endDate.day + 1));
+      final matchEnd =
+          endDate == null ||
+          r.timestamp.isBefore(
+            DateTime(endDate.year, endDate.month, endDate.day + 1),
+          );
 
       return matchTeam && matchCategory && matchStart && matchEnd;
     });
@@ -256,6 +265,7 @@ class AppProvider extends ChangeNotifier {
     _userRole = UserRole.operador;
     _name = '';
     _email = '';
+    _token = null;
     _activeTeam = null;
     notifyListeners();
   }

@@ -46,4 +46,17 @@ class ApiClient {
     final uri = Uri.parse('$baseUrl$path');
     return http.delete(uri, headers: _defaultHeaders(headers));
   }
+
+    Future<http.Response> put(
+    String path, {
+    Object? body,
+    Map<String, String>? headers,
+  }) {
+    final uri = Uri.parse('$baseUrl$path');
+    return http.put(
+      uri,
+      headers: _defaultHeaders(headers),
+      body: body == null ? null : (body is String ? body : jsonEncode(body)),
+    );
+  }
 }
