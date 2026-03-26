@@ -228,7 +228,7 @@ class _ManageUsersPageState extends State<ManageUsersPage> {
                     ),
                     const SizedBox(height: 8),
                     DropdownButtonFormField<String>(
-                      value: selectedRole,
+                      initialValue: selectedRole,
                       items: const [
                         DropdownMenuItem(
                           value: 'operador',
