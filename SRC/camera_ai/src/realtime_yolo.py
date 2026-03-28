@@ -5,7 +5,7 @@ import cv2
 from datetime import datetime
 from ultralytics import YOLO
 
-MODEL_PATH = "runs/detect/treino_alimentos/weights/best.pt"
+MODEL_PATH = "runs/detect/treino/treino_alimentos/weights/best.pt"
 CAMERA_INDEX = 0
 CONFIDENCE_THRESHOLD = 0.60
 REQUIRED_FRAMES = 5

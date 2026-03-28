@@ -4,8 +4,13 @@ model = YOLO("yolov8n.pt")
 
 model.train(
     data="data.yaml",
-    epochs=30,
+    epochs=80,
     imgsz=640,
     batch=8,
-    name="treino_alimentos"
+    patience=15,
+    save=True,
+    plots=True,
+    project="runs/detect",
+    name="treino_alimentos",
+    pretrained=True
 )
