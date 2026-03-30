@@ -44,10 +44,6 @@ O Lideranças Empáticas (LE) é uma iniciativa que une impacto social e educaç
 </ul>
 
 # 📋 Licença/License
-<span style="display: inline-flex; align-items: center; gap: 4px;">
-  <a href="https://creativecommons.org/licenses/by/4.0/">CC BY 4.0</a>
-  <img src="https://mirrors.creativecommons.org/presskit/icons/cc.svg" style="height: 1em;">
-  <img src="https://mirrors.creativecommons.org/presskit/icons/by.svg" style="height: 1em;">
-</span>
+Scanner AI © 2026 por Antonio Petri, Leonardo Santos, Lucas Gutierrez e Vitor Kanashiro está licenciado sob CC BY 4.0
 
 README.MD: Arquivo que serve como guia e explicação geral sobre o projeto.
