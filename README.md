@@ -44,6 +44,10 @@ O Lideranças Empáticas (LE) é uma iniciativa que une impacto social e educaç
 </ul>
 
 # 📋 Licença/License
-<a href="https://github.com/2026-1-NCC5/Projeto2"><font dir="auto" style="vertical-align: inherit;"><font dir="auto" style="vertical-align: inherit;">Scanner AI</font></font></a><font dir="auto" style="vertical-align: inherit;"><font dir="auto" style="vertical-align: inherit;"> © 2026 por </font></font><a href="https://github.com/2026-1-NCC5/Projeto2"><font dir="auto" style="vertical-align: inherit;"><font dir="auto" style="vertical-align: inherit;">Antonio Petri, Leonardo Santos, Lucas Gutierrez e Vitor Kanashiro</font></font></a><font dir="auto" style="vertical-align: inherit;"><font dir="auto" style="vertical-align: inherit;"> está licenciado sob </font></font><a href="https://creativecommons.org/licenses/by/4.0/"><font dir="auto" style="vertical-align: inherit;"><font dir="auto" style="vertical-align: inherit;">CC BY 4.0</font></font></a><img src="https://mirrors.creativecommons.org/presskit/icons/cc.svg" alt="" style="max-width: 1em;max-height:1em;margin-left: .2em;"><img src="https://mirrors.creativecommons.org/presskit/icons/by.svg" alt="" style="max-width: 1em;max-height:1em;margin-left: .2em;">
+<span style="display: inline-flex; align-items: center; gap: 4px;">
+  <a href="https://creativecommons.org/licenses/by/4.0/">CC BY 4.0</a>
+  <img src="https://mirrors.creativecommons.org/presskit/icons/cc.svg" style="height: 1em;">
+  <img src="https://mirrors.creativecommons.org/presskit/icons/by.svg" style="height: 1em;">
+</span>
 
 README.MD: Arquivo que serve como guia e explicação geral sobre o projeto.
