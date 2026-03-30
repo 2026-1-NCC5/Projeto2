@@ -43,4 +43,8 @@ O Lideranças Empáticas (LE) é uma iniciativa que une impacto social e educaç
   <li><img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/python/python-original.svg" width="18"/> <a href="https://www.python.org/">Python</a></li>
 </ul>
 
+# 📋 Licença/License
+
+<a href="https://github.com/2026-1-NCC5/Projeto2"><font dir="auto" style="vertical-align: inherit;"><font dir="auto" style="vertical-align: inherit;">Scanner AI</font></font></a><font dir="auto" style="vertical-align: inherit;"><font dir="auto" style="vertical-align: inherit;"> © 2026 por </font></font><a href="https://github.com/2026-1-NCC5/Projeto2"><font dir="auto" style="vertical-align: inherit;"><font dir="auto" style="vertical-align: inherit;">Antonio Petri, Leonardo Santos, Lucas Gutierrez e Vitor Kanashiro</font></font></a><font dir="auto" style="vertical-align: inherit;"><font dir="auto" style="vertical-align: inherit;"> está licenciado sob </font></font><a href="https://creativecommons.org/licenses/by/4.0/"><font dir="auto" style="vertical-align: inherit;"><font dir="auto" style="vertical-align: inherit;">CC BY 4.0</font></font></a><img src="https://mirrors.creativecommons.org/presskit/icons/cc.svg" alt="" style="max-width: 1em;max-height:1em;margin-left: .2em;"><img src="https://mirrors.creativecommons.org/presskit/icons/by.svg" alt="" style="max-width: 1em;max-height:1em;margin-left: .2em;">
+
 README.MD: Arquivo que serve como guia e explicação geral sobre o projeto.
