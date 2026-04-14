@@ -10,6 +10,5 @@ class Reading(Base):
     team_id = Column(Integer, ForeignKey("teams.id"), nullable=False)
     user_id = Column(Integer, ForeignKey("users.id"), nullable=True)
     category = Column(String(50), nullable=False)
-    confidence = Column(Float, nullable=True)
-    image_path = Column(String(255), nullable=True)
+    kg_amount = Column(Float, nullable=False, default=0.0)
     created_at = Column(DateTime(timezone=True), server_default=func.now())

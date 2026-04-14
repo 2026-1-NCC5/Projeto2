@@ -29,6 +29,10 @@ class ApiClient {
     return http.get(uri, headers: _defaultHeaders(headers));
   }
 
+  Future<http.Response> getUri(Uri uri, {Map<String, String>? headers}) {
+    return http.get(uri, headers: _defaultHeaders(headers));
+  }
+
   Future<http.Response> post(
     String path, {
     Object? body,

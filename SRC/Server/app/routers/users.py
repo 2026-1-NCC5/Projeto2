@@ -1,27 +1,24 @@
-from fastapi import APIRouter, Depends, HTTPException, Header
+from fastapi import APIRouter, Depends, HTTPException, Header, Security
+from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from sqlalchemy.orm import Session
 
 from app.db.database import get_db
 from app.models.user import User
+from app.models.team import Team
 from app.schemas.user import UserCreateRequest, UserUpdateRequest, UserResponse
 from app.core.security import hash_password, decode_access_token
-from fastapi import Security
-from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 
 router = APIRouter(prefix="/api/users", tags=["Users"])
 
-
 security = HTTPBearer()
+
 
 def get_current_payload(
     credentials: HTTPAuthorizationCredentials = Security(security)
 ):
-    token = credentials.credentials
-    payload = decode_access_token(token)
-
+    payload = decode_access_token(credentials.credentials)
     if not payload:
         raise HTTPException(status_code=401, detail="Token inválido")
-
     return payload
 
 
@@ -30,15 +27,30 @@ def require_admin(payload: dict):
         raise HTTPException(status_code=403, detail="Acesso negado")
 
 
+def _enrich_user(user: User, db: Session) -> dict:
+    team_name = None
+    if user.team_id:
+        team = db.query(Team).filter(Team.id == user.team_id).first()
+        team_name = team.name if team else None
+    return {
+        "id": user.id,
+        "name": user.name,
+        "email": user.email,
+        "role": user.role,
+        "team_id": user.team_id,
+        "team_name": team_name,
+        "active": user.active,
+    }
+
+
 @router.get("", response_model=list[UserResponse])
 def list_users(
     db: Session = Depends(get_db),
     payload: dict = Depends(get_current_payload)
 ):
-    
     require_admin(payload)
-
-    return db.query(User).order_by(User.id.asc()).all()
+    users = db.query(User).order_by(User.id.asc()).all()
+    return [_enrich_user(u, db) for u in users]
 
 
 @router.post("", response_model=UserResponse)
@@ -47,7 +59,6 @@ def create_user(
     db: Session = Depends(get_db),
     payload: dict = Depends(get_current_payload)
 ):
-    
     require_admin(payload)
 
     exists = db.query(User).filter(User.email == data.email).first()
@@ -65,7 +76,7 @@ def create_user(
     db.add(user)
     db.commit()
     db.refresh(user)
-    return user
+    return _enrich_user(user, db)
 
 
 @router.put("/{user_id}", response_model=UserResponse)
@@ -75,7 +86,6 @@ def update_user(
     db: Session = Depends(get_db),
     payload: dict = Depends(get_current_payload)
 ):
-    
     require_admin(payload)
 
     user = db.query(User).filter(User.id == user_id).first()
@@ -97,7 +107,7 @@ def update_user(
 
     db.commit()
     db.refresh(user)
-    return user
+    return _enrich_user(user, db)
 
 
 @router.delete("/{user_id}")
@@ -106,7 +116,6 @@ def delete_user(
     db: Session = Depends(get_db),
     payload: dict = Depends(get_current_payload)
 ):
-    
     require_admin(payload)
 
     user = db.query(User).filter(User.id == user_id).first()

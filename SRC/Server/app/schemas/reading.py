@@ -1,22 +1,30 @@
-from pydantic import BaseModel
+from datetime import datetime
 from typing import Optional
+from pydantic import BaseModel
 
 
 class ReadingCreate(BaseModel):
     team_id: int
     category: str
-    confidence: Optional[float] = None
-    image_path: Optional[str] = None
+    kg_amount: float
 
 
 class ReadingResponse(BaseModel):
     id: int
     team_id: int
-    user_id: Optional[int]
+    team_name: Optional[str] = None
+    user_id: Optional[int] = None
+    user_name: Optional[str] = None
     category: str
-    confidence: Optional[float]
-    image_path: Optional[str]
+    kg_amount: float
+    created_at: Optional[datetime] = None
 
     class Config:
         from_attributes = True
 
+
+class ReadingSummaryItem(BaseModel):
+    team_id: int
+    team_name: str
+    category: str
+    total_kg: float

@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 
 import '../../../core/providers/app_provider.dart';
 import '../../../core/routes/app_routes.dart';
+import '../../../core/theme/app_colors.dart';
 import '../widgets/app_drawer.dart';
 
 class AdminHomePage extends StatelessWidget {
@@ -10,13 +11,10 @@ class AdminHomePage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final appProvider = Provider.of<AppProvider>(context);
+    final p = Provider.of<AppProvider>(context);
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Home - Admin'),
-        centerTitle: true,
-      ),
+      appBar: AppBar(title: const Text('Home — Admin'), centerTitle: true),
       drawer: const AppDrawer(),
       body: Padding(
         padding: const EdgeInsets.all(16),
@@ -24,20 +22,27 @@ class AdminHomePage extends StatelessWidget {
           children: [
             Card(
               child: ListTile(
-                leading: const Icon(Icons.admin_panel_settings),
-                title: Text(appProvider.name.isEmpty ? 'Admin' : appProvider.name),
-                subtitle: Text('Equipes: ${appProvider.teams.length} | Metas: ${appProvider.goals.length} | Leituras: ${appProvider.readings.length}'),
+                leading: Icon(Icons.admin_panel_settings, color: AppColors.primary),
+                title: Text(p.name.isEmpty ? 'Admin' : p.name),
+                subtitle: Text('Equipes: ${p.teams.length}'),
               ),
             ),
             const SizedBox(height: 12),
-
             Card(
               child: ListTile(
-                leading: const Icon(Icons.person_add, size: 30),
-                title: const Text('Criar Usuários / Coordenadores'),
-                subtitle: const Text('Gerenciar contas do sistema'),
-                onTap: () => Navigator.pushReplacementNamed(context, AppRoutes.manageUsers),              
-                ),
+                leading: const Icon(Icons.dashboard, size: 30),
+                title: const Text('Dashboard Geral'),
+                subtitle: const Text('Resultados de todas as equipes'),
+                onTap: () => Navigator.pushReplacementNamed(context, AppRoutes.adminDashboard),
+              ),
+            ),
+            Card(
+              child: ListTile(
+                leading: const Icon(Icons.people, size: 30),
+                title: const Text('Gerenciar Usuários'),
+                subtitle: const Text('Criar e editar contas'),
+                onTap: () => Navigator.pushReplacementNamed(context, AppRoutes.manageUsers),
+              ),
             ),
             Card(
               child: ListTile(
@@ -50,7 +55,7 @@ class AdminHomePage extends StatelessWidget {
             Card(
               child: ListTile(
                 leading: const Icon(Icons.groups_2, size: 30),
-                title: const Text('Administrar Equipes'),
+                title: const Text('Gerenciar Equipes'),
                 subtitle: const Text('Criar e remover equipes'),
                 onTap: () => Navigator.pushReplacementNamed(context, AppRoutes.manageTeams),
               ),
@@ -61,14 +66,6 @@ class AdminHomePage extends StatelessWidget {
                 title: const Text('Tabela de Dados'),
                 subtitle: const Text('Visualizar e filtrar leituras'),
                 onTap: () => Navigator.pushReplacementNamed(context, AppRoutes.dataTable),
-              ),
-            ),
-            Card(
-              child: ListTile(
-                leading: const Icon(Icons.download, size: 30),
-                title: const Text('Exportar Planilhas'),
-                subtitle: const Text('Gerar CSV com filtros'),
-                onTap: () => Navigator.pushReplacementNamed(context, AppRoutes.export),
               ),
             ),
           ],

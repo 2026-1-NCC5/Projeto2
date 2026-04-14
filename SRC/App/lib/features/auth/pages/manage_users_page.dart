@@ -20,6 +20,7 @@ class _ManageUsersPageState extends State<ManageUsersPage> {
   final passwordController = TextEditingController();
 
   String selectedRole = 'operador';
+  int? selectedTeamId;
   bool active = true;
   bool loading = false;
 
@@ -31,7 +32,15 @@ class _ManageUsersPageState extends State<ManageUsersPage> {
     loadUsers();
   }
 
-  UsersApi _api(BuildContext context) {
+  @override
+  void dispose() {
+    nameController.dispose();
+    emailController.dispose();
+    passwordController.dispose();
+    super.dispose();
+  }
+
+  UsersApi _usersApi(BuildContext context) {
     final appProvider = Provider.of<AppProvider>(context, listen: false);
     final client = ApiClient();
     client.setToken(appProvider.token);
@@ -41,11 +50,8 @@ class _ManageUsersPageState extends State<ManageUsersPage> {
   Future<void> loadUsers() async {
     setState(() => loading = true);
     try {
-      final api = _api(context);
-      final result = await api.getUsers();
-      if (mounted) {
-        setState(() => users = result);
-      }
+      final result = await _usersApi(context).getUsers();
+      if (mounted) setState(() => users = result);
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -66,47 +72,28 @@ class _ManageUsersPageState extends State<ManageUsersPage> {
       );
       return;
     }
-
     setState(() => loading = true);
-
     try {
-      final api = _api(context);
-      await api.createUser(
+      await _usersApi(context).createUser(
         name: nameController.text.trim(),
         email: emailController.text.trim(),
         password: passwordController.text.trim(),
         role: selectedRole,
-        teamId: null,
+        teamId: selectedTeamId,
         active: active,
       );
-
       nameController.clear();
       emailController.clear();
       passwordController.clear();
-
-      if (mounted) {
-        setState(() {
-          selectedRole = 'operador';
-          active = true;
-        });
-      }
-
+      if (mounted) setState(() { selectedRole = 'operador'; selectedTeamId = null; active = true; });
       await loadUsers();
-
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            backgroundColor: AppColors.green,
-            content: Text('Usuário criado com sucesso'),
-          ),
+          const SnackBar(backgroundColor: AppColors.green, content: Text('Usuário criado')),
         );
       }
     } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Erro ao criar usuário: $e')),
-        );
-      }
+      if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Erro: $e')));
     } finally {
       if (mounted) setState(() => loading = false);
     }
@@ -115,24 +102,15 @@ class _ManageUsersPageState extends State<ManageUsersPage> {
   Future<void> deleteUser(int id) async {
     setState(() => loading = true);
     try {
-      final api = _api(context);
-      await api.deleteUser(id);
+      await _usersApi(context).deleteUser(id);
       await loadUsers();
-
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            backgroundColor: AppColors.green,
-            content: Text('Usuário removido com sucesso'),
-          ),
+          const SnackBar(backgroundColor: AppColors.green, content: Text('Usuário removido')),
         );
       }
     } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Erro ao excluir usuário: $e')),
-        );
-      }
+      if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Erro: $e')));
     } finally {
       if (mounted) setState(() => loading = false);
     }
@@ -141,18 +119,10 @@ class _ManageUsersPageState extends State<ManageUsersPage> {
   Future<void> toggleActive(Map<String, dynamic> user) async {
     setState(() => loading = true);
     try {
-      final api = _api(context);
-      await api.updateUser(
-        userId: user['id'],
-        active: !(user['active'] as bool),
-      );
+      await _usersApi(context).updateUser(userId: user['id'], active: !(user['active'] as bool));
       await loadUsers();
     } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Erro ao atualizar usuário: $e')),
-        );
-      }
+      if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Erro: $e')));
     } finally {
       if (mounted) setState(() => loading = false);
     }
@@ -160,18 +130,16 @@ class _ManageUsersPageState extends State<ManageUsersPage> {
 
   Color roleColor(String role) {
     switch (role) {
-      case 'admin':
-        return Colors.red;
-      case 'coordenador':
-        return Colors.orange;
-      default:
-        return Colors.blue;
+      case 'admin': return Colors.red;
+      case 'coordenador': return Colors.orange;
+      default: return Colors.blue;
     }
   }
 
   @override
   Widget build(BuildContext context) {
     final appProvider = Provider.of<AppProvider>(context, listen: false);
+    final teams = appProvider.teams;
 
     return Scaffold(
       appBar: AppBar(
@@ -179,16 +147,10 @@ class _ManageUsersPageState extends State<ManageUsersPage> {
         centerTitle: true,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
-          onPressed: () => Navigator.pushReplacementNamed(
-            context,
-            appProvider.homeRoute,
-          ),
+          onPressed: () => Navigator.pushReplacementNamed(context, appProvider.homeRoute),
         ),
         actions: [
-          IconButton(
-            onPressed: loading ? null : loadUsers,
-            icon: const Icon(Icons.refresh),
-          ),
+          IconButton(onPressed: loading ? null : loadUsers, icon: const Icon(Icons.refresh)),
         ],
       ),
       body: Padding(
@@ -199,69 +161,49 @@ class _ManageUsersPageState extends State<ManageUsersPage> {
               child: Padding(
                 padding: const EdgeInsets.all(16),
                 child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Align(
-                      alignment: Alignment.centerLeft,
-                      child: Text(
-                        'Criar novo usuário',
-                        style: TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    ),
+                    const Text('Criar novo usuário', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
                     const SizedBox(height: 12),
-                    TextField(
-                      controller: nameController,
-                      decoration: const InputDecoration(labelText: 'Nome'),
-                    ),
+                    TextField(controller: nameController, decoration: const InputDecoration(labelText: 'Nome')),
                     const SizedBox(height: 8),
-                    TextField(
-                      controller: emailController,
-                      decoration: const InputDecoration(labelText: 'Email'),
-                    ),
+                    TextField(controller: emailController, decoration: const InputDecoration(labelText: 'Email')),
                     const SizedBox(height: 8),
-                    TextField(
-                      controller: passwordController,
-                      obscureText: true,
-                      decoration: const InputDecoration(labelText: 'Senha'),
-                    ),
+                    TextField(controller: passwordController, obscureText: true, decoration: const InputDecoration(labelText: 'Senha')),
                     const SizedBox(height: 8),
                     DropdownButtonFormField<String>(
-                      initialValue: selectedRole,
-                      items: const [
-                        DropdownMenuItem(
-                          value: 'operador',
-                          child: Text('Operador'),
-                        ),
-                        DropdownMenuItem(
-                          value: 'coordenador',
-                          child: Text('Coordenador'),
-                        ),
-                        DropdownMenuItem(
-                          value: 'admin',
-                          child: Text('Admin'),
-                        ),
-                      ],
-                      onChanged: (value) {
-                        if (value != null) {
-                          setState(() => selectedRole = value);
-                        }
-                      },
+                      value: selectedRole,
                       decoration: const InputDecoration(labelText: 'Perfil'),
+                      items: const [
+                        DropdownMenuItem(value: 'operador', child: Text('Operador')),
+                        DropdownMenuItem(value: 'coordenador', child: Text('Coordenador')),
+                        DropdownMenuItem(value: 'admin', child: Text('Admin')),
+                      ],
+                      onChanged: (v) { if (v != null) setState(() => selectedRole = v); },
+                    ),
+                    const SizedBox(height: 8),
+                    DropdownButtonFormField<int?>(
+                      value: selectedTeamId,
+                      decoration: const InputDecoration(labelText: 'Equipe (opcional)'),
+                      items: [
+                        const DropdownMenuItem(value: null, child: Text('Sem equipe')),
+                        ...teams.map((t) => DropdownMenuItem(value: t.id, child: Text(t.name))),
+                      ],
+                      onChanged: (v) => setState(() => selectedTeamId = v),
                     ),
                     const SizedBox(height: 8),
                     SwitchListTile(
                       title: const Text('Usuário ativo'),
                       value: active,
-                      onChanged: (value) => setState(() => active = value),
+                      onChanged: (v) => setState(() => active = v),
                     ),
                     const SizedBox(height: 8),
                     SizedBox(
                       width: double.infinity,
                       child: ElevatedButton(
+                        style: ElevatedButton.styleFrom(backgroundColor: AppColors.primary),
                         onPressed: loading ? null : createUser,
-                        child: const Text('Criar usuário'),
+                        child: const Text('Criar usuário', style: TextStyle(color: Colors.white)),
                       ),
                     ),
                   ],
@@ -273,54 +215,33 @@ class _ManageUsersPageState extends State<ManageUsersPage> {
               child: loading
                   ? const Center(child: CircularProgressIndicator())
                   : users.isEmpty
-                      ? const Center(child: Text('Nenhum usuário encontrado'))
+                      ? const Center(child: Text('Nenhum usuário'))
                       : ListView.builder(
                           itemCount: users.length,
-                          itemBuilder: (context, index) {
-                            final user = users[index];
+                          itemBuilder: (context, i) {
+                            final u = users[i];
+                            final teamName = u['team_name'] ?? '—';
                             return Card(
                               child: ListTile(
-                                title: Text(user['name'] ?? ''),
+                                title: Text(u['name'] ?? ''),
                                 subtitle: Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
-                                    Text(user['email'] ?? ''),
+                                    Text(u['email'] ?? ''),
+                                    Text('Equipe: $teamName'),
                                     const SizedBox(height: 4),
-                                    Row(
-                                      children: [
-                                        Chip(
-                                          label: Text(user['role'] ?? ''),
-                                          backgroundColor: roleColor(
-                                            user['role'] ?? '',
-                                          ),
-                                        ),
-                                        const SizedBox(width: 8),
-                                        Chip(
-                                          label: Text(
-                                            user['active'] == true
-                                                ? 'Ativo'
-                                                : 'Inativo',
-                                          ),
-                                        ),
-                                      ],
-                                    ),
+                                    Row(children: [
+                                      Chip(label: Text(u['role'] ?? ''), backgroundColor: roleColor(u['role'] ?? '')),
+                                      const SizedBox(width: 8),
+                                      Chip(label: Text(u['active'] == true ? 'Ativo' : 'Inativo')),
+                                    ]),
                                   ],
                                 ),
-                                trailing: Wrap(
-                                  spacing: 8,
-                                  children: [
-                                    IconButton(
-                                      tooltip: 'Ativar/Inativar',
-                                      onPressed: () => toggleActive(user),
-                                      icon: const Icon(Icons.swap_horiz),
-                                    ),
-                                    IconButton(
-                                      tooltip: 'Excluir',
-                                      onPressed: () => deleteUser(user['id']),
-                                      icon: const Icon(Icons.delete),
-                                    ),
-                                  ],
-                                ),
+                                isThreeLine: true,
+                                trailing: Wrap(spacing: 8, children: [
+                                  IconButton(tooltip: 'Ativar/Inativar', onPressed: () => toggleActive(u), icon: const Icon(Icons.swap_horiz)),
+                                  IconButton(tooltip: 'Excluir', onPressed: () => deleteUser(u['id']), icon: const Icon(Icons.delete, color: Colors.red)),
+                                ]),
                               ),
                             );
                           },

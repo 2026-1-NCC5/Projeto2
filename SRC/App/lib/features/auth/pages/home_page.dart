@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 
 import '../../../core/providers/app_provider.dart';
 import '../../../core/routes/app_routes.dart';
+import '../../../core/theme/app_colors.dart';
 import '../widgets/app_drawer.dart';
 
 class HomePage extends StatelessWidget {
@@ -10,13 +11,10 @@ class HomePage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final appProvider = Provider.of<AppProvider>(context);
+    final p = Provider.of<AppProvider>(context);
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Home - Operador'),
-        centerTitle: true,
-      ),
+      appBar: AppBar(title: const Text('Home — Operador'), centerTitle: true),
       drawer: const AppDrawer(),
       body: Padding(
         padding: const EdgeInsets.all(16),
@@ -24,43 +22,26 @@ class HomePage extends StatelessWidget {
           children: [
             Card(
               child: ListTile(
-                leading: const Icon(Icons.person),
-                title: Text(appProvider.name.isEmpty ? 'Operador' : appProvider.name),
-                subtitle: Text('Equipe ativa: ${appProvider.activeTeam?.name ?? "Nenhuma"}'),
-                trailing: Chip(label: Text('Leituras: ${appProvider.readings.length}')),
+                leading: Icon(Icons.person, color: AppColors.primary),
+                title: Text(p.name.isEmpty ? 'Operador' : p.name),
+                subtitle: Text('Equipe: ${p.activeTeam?.name ?? "Nenhuma"}'),
               ),
             ),
             const SizedBox(height: 12),
             Card(
               child: ListTile(
-                leading: const Icon(Icons.camera_alt, size: 30),
-                title: const Text('Leitura pela Câmera'),
-                subtitle: const Text('Registrar arroz, feijão e outros'),
-                onTap: () => Navigator.pushReplacementNamed(context, AppRoutes.camera),
+                leading: Icon(Icons.set_meal, size: 30, color: AppColors.primary),
+                title: const Text('Registrar Alimentos'),
+                subtitle: const Text('Informe os quilos coletados'),
+                onTap: () => Navigator.pushReplacementNamed(context, AppRoutes.foodRegister),
               ),
             ),
             Card(
               child: ListTile(
-                leading: const Icon(Icons.groups, size: 30),
-                title: const Text('Entrar em Equipe'),
-                subtitle: const Text('Selecionar equipe para contagem'),
-                onTap: () => Navigator.pushReplacementNamed(context, AppRoutes.team),
-              ),
-            ),
-            Card(
-              child: ListTile(
-                leading: const Icon(Icons.receipt_long, size: 30),
-                title: const Text('Dados da Leitura'),
-                subtitle: const Text('Visualizar registros'),
+                leading: const Icon(Icons.history, size: 30),
+                title: const Text('Leituras'),
+                subtitle: const Text('Ver registros enviados'),
                 onTap: () => Navigator.pushReplacementNamed(context, AppRoutes.readings),
-              ),
-            ),
-            Card(
-              child: ListTile(
-                leading: const Icon(Icons.flag, size: 30),
-                title: const Text('Metas'),
-                subtitle: const Text('Acompanhar progresso'),
-                onTap: () => Navigator.pushReplacementNamed(context, AppRoutes.goals),
               ),
             ),
           ],

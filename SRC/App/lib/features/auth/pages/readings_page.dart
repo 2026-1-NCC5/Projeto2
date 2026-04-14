@@ -1,52 +1,84 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
+import '../../../core/api/api_client.dart';
+import '../../../core/api/readings_api.dart';
 import '../../../core/providers/app_provider.dart';
+import '../../../core/theme/app_colors.dart';
 
-class ReadingsPage extends StatelessWidget {
+class ReadingsPage extends StatefulWidget {
   const ReadingsPage({super.key});
 
-  String _formatDateTime(DateTime d) {
-    final dd = d.day.toString().padLeft(2, '0');
-    final mm = d.month.toString().padLeft(2, '0');
-    final yyyy = d.year.toString();
-    final hh = d.hour.toString().padLeft(2, '0');
-    final min = d.minute.toString().padLeft(2, '0');
-    return '$dd/$mm/$yyyy $hh:$min';
+  @override
+  State<ReadingsPage> createState() => _ReadingsPageState();
+}
+
+class _ReadingsPageState extends State<ReadingsPage> {
+  bool _loading = true;
+  List<ReadingEvent> _readings = [];
+
+  @override
+  void initState() {
+    super.initState();
+    _loadReadings();
+  }
+
+  Future<void> _loadReadings() async {
+    setState(() => _loading = true);
+    final p = Provider.of<AppProvider>(context, listen: false);
+    final client = ApiClient()..setToken(p.token);
+
+    try {
+      final data = await ReadingsApi(client).getReadings(
+        teamId: p.isTeamLocked ? p.userTeamId : null,
+      );
+      if (mounted) {
+        setState(() => _readings = data.map(ReadingEvent.fromMap).toList());
+      }
+    } catch (e) {
+      if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Erro: $e')));
+    } finally {
+      if (mounted) setState(() => _loading = false);
+    }
+  }
+
+  String _fmt(DateTime d) {
+    return '${d.day.toString().padLeft(2, '0')}/${d.month.toString().padLeft(2, '0')}/${d.year} ${d.hour.toString().padLeft(2, '0')}:${d.minute.toString().padLeft(2, '0')}';
   }
 
   @override
   Widget build(BuildContext context) {
-    final appProvider = Provider.of<AppProvider>(context);
+    final p = Provider.of<AppProvider>(context);
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Dados da Leitura'),
+        title: const Text('Leituras'),
         centerTitle: true,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
-          onPressed: () => Navigator.pushReplacementNamed(context, appProvider.homeRoute),
+          onPressed: () => Navigator.pushReplacementNamed(context, p.homeRoute),
         ),
+        actions: [IconButton(icon: const Icon(Icons.refresh), onPressed: _loadReadings)],
       ),
-      body: Padding(
-        padding: const EdgeInsets.all(16),
-        child: appProvider.readings.isEmpty
-            ? const Center(child: Text('Nenhuma leitura registrada'))
-            : ListView.separated(
-                itemCount: appProvider.readings.length,
-                separatorBuilder: (_, _) => const SizedBox(height: 8),
-                itemBuilder: (context, index) {
-                  final r = appProvider.readings[index];
-                  return Card(
-                    child: ListTile(
-                      leading: const Icon(Icons.receipt_long),
-                      title: Text('${r.teamName} • ${foodCategoryLabel(r.category)}'),
-                      subtitle: Text('Operador: ${r.operatorName} • ${_formatDateTime(r.timestamp)}'),
-                    ),
-                  );
-                },
-              ),
-      ),
+      body: _loading
+          ? const Center(child: CircularProgressIndicator())
+          : _readings.isEmpty
+              ? const Center(child: Text('Nenhuma leitura registrada'))
+              : ListView.separated(
+                  padding: const EdgeInsets.all(16),
+                  itemCount: _readings.length,
+                  separatorBuilder: (_, __) => const SizedBox(height: 8),
+                  itemBuilder: (context, i) {
+                    final r = _readings[i];
+                    return Card(
+                      child: ListTile(
+                        leading: Icon(Icons.receipt_long, color: AppColors.primary),
+                        title: Text('${r.teamName} • ${foodCategoryLabel(r.category)}'),
+                        subtitle: Text('${r.userName ?? "—"} • ${r.kgAmount.toStringAsFixed(1)} kg • ${_fmt(r.timestamp)}'),
+                      ),
+                    );
+                  },
+                ),
     );
   }
 }

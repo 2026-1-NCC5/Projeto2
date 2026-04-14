@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 
 import '../../../core/providers/app_provider.dart';
 import '../../../core/routes/app_routes.dart';
+import '../../../core/theme/app_colors.dart';
 import '../widgets/app_drawer.dart';
 
 class CoordinatorHomePage extends StatelessWidget {
@@ -10,13 +11,10 @@ class CoordinatorHomePage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final appProvider = Provider.of<AppProvider>(context);
+    final p = Provider.of<AppProvider>(context);
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Home - Coordenador'),
-        centerTitle: true,
-      ),
+      appBar: AppBar(title: const Text('Home — Coordenador'), centerTitle: true),
       drawer: const AppDrawer(),
       body: Padding(
         padding: const EdgeInsets.all(16),
@@ -24,51 +22,42 @@ class CoordinatorHomePage extends StatelessWidget {
           children: [
             Card(
               child: ListTile(
-                leading: const Icon(Icons.supervisor_account),
-                title: Text(appProvider.name.isEmpty ? 'Coordenador' : appProvider.name),
-                subtitle: Text('Equipes: ${appProvider.teams.length} | Leituras: ${appProvider.readings.length}'),
+                leading: Icon(Icons.supervisor_account, color: AppColors.primary),
+                title: Text(p.name.isEmpty ? 'Coordenador' : p.name),
+                subtitle: Text('Equipe: ${p.activeTeam?.name ?? "Nenhuma"}'),
               ),
             ),
             const SizedBox(height: 12),
             Card(
               child: ListTile(
-                leading: const Icon(Icons.table_chart, size: 30),
-                title: const Text('Tabela de Dados'),
-                subtitle: const Text('Filtros por equipe, categoria e data'),
-                onTap: () => Navigator.pushReplacementNamed(context, AppRoutes.dataTable),
+                leading: Icon(Icons.set_meal, size: 30, color: AppColors.primary),
+                title: const Text('Registrar Alimentos'),
+                subtitle: const Text('Informe os quilos coletados'),
+                onTap: () => Navigator.pushReplacementNamed(context, AppRoutes.foodRegister),
+              ),
+            ),
+            Card(
+              child: ListTile(
+                leading: const Icon(Icons.bar_chart, size: 30),
+                title: const Text('Dashboard da Equipe'),
+                subtitle: const Text('Progresso e metas da equipe'),
+                onTap: () => Navigator.pushReplacementNamed(context, AppRoutes.coordinatorDashboard),
+              ),
+            ),
+            Card(
+              child: ListTile(
+                leading: const Icon(Icons.history, size: 30),
+                title: const Text('Leituras'),
+                subtitle: const Text('Ver registros enviados'),
+                onTap: () => Navigator.pushReplacementNamed(context, AppRoutes.readings),
               ),
             ),
             Card(
               child: ListTile(
                 leading: const Icon(Icons.download, size: 30),
-                title: const Text('Exportar Planilhas'),
-                subtitle: const Text('Gerar CSV com filtros'),
+                title: const Text('Exportar'),
+                subtitle: const Text('Gerar CSV da equipe'),
                 onTap: () => Navigator.pushReplacementNamed(context, AppRoutes.export),
-              ),
-            ),
-            Card(
-              child: ListTile(
-                leading: const Icon(Icons.groups_2, size: 30),
-                title: const Text('Administrar Equipes'),
-                subtitle: const Text('Criar e remover equipes'),
-                onTap: () => Navigator.pushReplacementNamed(context, AppRoutes.manageTeams),
-              ),
-            ),
-            const Divider(),
-            Card(
-              child: ListTile(
-                leading: const Icon(Icons.camera_alt, size: 30),
-                title: const Text('Leitura pela Câmera'),
-                subtitle: const Text('Registrar leituras também'),
-                onTap: () => Navigator.pushReplacementNamed(context, AppRoutes.camera),
-              ),
-            ),
-            Card(
-              child: ListTile(
-                leading: const Icon(Icons.flag, size: 30),
-                title: const Text('Metas'),
-                subtitle: const Text('Acompanhar metas'),
-                onTap: () => Navigator.pushReplacementNamed(context, AppRoutes.goals),
               ),
             ),
           ],

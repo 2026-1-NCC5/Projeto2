@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
+import '../../../core/api/api_client.dart';
+import '../../../core/api/readings_api.dart';
 import '../../../core/providers/app_provider.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/utils/export_downloader.dart';
@@ -17,6 +19,21 @@ class _ExportPageState extends State<ExportPage> {
   String categoryFilter = 'Todas';
   DateTime? startDate;
   DateTime? endDate;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadReadings();
+  }
+
+  Future<void> _loadReadings() async {
+    final p = Provider.of<AppProvider>(context, listen: false);
+    final client = ApiClient()..setToken(p.token);
+    try {
+      final data = await ReadingsApi(client).getReadings();
+      if (mounted) p.setReadings(data);
+    } catch (_) {}
+  }
 
   String _formatDate(DateTime? d) {
     if (d == null) return '—';
@@ -97,7 +114,7 @@ class _ExportPageState extends State<ExportPage> {
     final appProvider = Provider.of<AppProvider>(context);
 
     final teams = <String>{'Todas', ...appProvider.teams.map((t) => t.name)}.toList();
-    final categories = const <String>['Todas', 'Arroz', 'Feijão', 'Outros'];
+    final categories = const <String>['Todas', 'Arroz', 'Feijão', 'Macarrão', 'Açúcar', 'Outros'];
 
     return Scaffold(
       appBar: AppBar(

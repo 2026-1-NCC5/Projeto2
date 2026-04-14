@@ -26,6 +26,7 @@ class UserResponse(BaseModel):
     email: EmailStr
     role: str
     team_id: Optional[int] = None
+    team_name: Optional[str] = None
     active: bool
 
     class Config:

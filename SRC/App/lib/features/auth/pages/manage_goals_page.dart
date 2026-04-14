@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
+import '../../../core/api/api_client.dart';
+import '../../../core/api/goals_api.dart';
 import '../../../core/providers/app_provider.dart';
+import '../../../core/routes/app_routes.dart';
 import '../../../core/theme/app_colors.dart';
 
 class ManageGoalsPage extends StatefulWidget {
@@ -12,61 +15,98 @@ class ManageGoalsPage extends StatefulWidget {
 }
 
 class _ManageGoalsPageState extends State<ManageGoalsPage> {
-  String? selectedTeam;
-  FoodCategory selectedCategory = FoodCategory.arroz;
+  TeamLite? _selectedTeam;
+  FoodCategory _selectedCategory = FoodCategory.arroz;
+  final _targetController = TextEditingController();
 
-  final targetController = TextEditingController();
+  bool _loading = false;
+  List<GoalItem> _goals = [];
+
+  @override
+  void initState() {
+    super.initState();
+    _loadGoals();
+  }
 
   @override
   void dispose() {
-    targetController.dispose();
+    _targetController.dispose();
     super.dispose();
   }
 
-  void saveGoal() {
-    final appProvider = Provider.of<AppProvider>(context, listen: false);
+  GoalsApi _api(BuildContext context) {
+    final p = Provider.of<AppProvider>(context, listen: false);
+    return GoalsApi(ApiClient()..setToken(p.token));
+  }
 
-    final team = selectedTeam;
-    if (team == null || team.trim().isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Selecione uma equipe')),
-      );
+  Future<void> _loadGoals() async {
+    setState(() => _loading = true);
+    try {
+      final data = await _api(context).getGoals();
+      if (mounted) setState(() => _goals = data.map(GoalItem.fromMap).toList());
+    } catch (e) {
+      if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Erro: $e')));
+    } finally {
+      if (mounted) setState(() => _loading = false);
+    }
+  }
+
+  Future<void> _saveGoal() async {
+    final team = _selectedTeam;
+    if (team == null) {
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Selecione uma equipe')));
       return;
     }
-
-    final target = int.tryParse(targetController.text.trim());
+    final target = double.tryParse(_targetController.text.trim().replaceAll(',', '.'));
     if (target == null || target <= 0) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Informe um número válido para a meta')),
-      );
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Informe um valor válido para a meta')));
       return;
     }
 
-    appProvider.upsertGoal(
-      teamName: team,
-      category: selectedCategory,
-      target: target,
-    );
+    setState(() => _loading = true);
+    try {
+      await _api(context).upsertGoal(
+        teamId: team.id,
+        category: foodCategoryToString(_selectedCategory),
+        targetKg: target,
+      );
+      _targetController.clear();
+      await _loadGoals();
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(backgroundColor: AppColors.green, content: Text('Meta salva com sucesso')),
+        );
+      }
+    } catch (e) {
+      if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Erro: $e')));
+    } finally {
+      if (mounted) setState(() => _loading = false);
+    }
+  }
 
-    targetController.clear();
-
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        backgroundColor: AppColors.green,
-        content: const Text('Meta salva com sucesso'),
-      ),
-    );
+  Future<void> _deleteGoal(int goalId) async {
+    setState(() => _loading = true);
+    try {
+      await _api(context).deleteGoal(goalId);
+      await _loadGoals();
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(backgroundColor: AppColors.green, content: Text('Meta removida')),
+        );
+      }
+    } catch (e) {
+      if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Erro: $e')));
+    } finally {
+      if (mounted) setState(() => _loading = false);
+    }
   }
 
   @override
   Widget build(BuildContext context) {
-    final appProvider = Provider.of<AppProvider>(context);
+    final p = Provider.of<AppProvider>(context);
 
-    final teams = appProvider.teams.map((t) => t.name).toList();
-
-    // ✅ garante um default sem setState
-    if (selectedTeam == null && teams.isNotEmpty) {
-      selectedTeam = teams.first;
+    if (_selectedTeam == null && p.teams.isNotEmpty) {
+      _selectedTeam = p.teams.first;
     }
 
     return Scaffold(
@@ -75,11 +115,11 @@ class _ManageGoalsPageState extends State<ManageGoalsPage> {
         centerTitle: true,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
-          onPressed: () => Navigator.pushReplacementNamed(
-            context,
-            appProvider.homeRoute,
-          ),
+          onPressed: () => Navigator.pushReplacementNamed(context, p.homeRoute),
         ),
+        actions: [
+          IconButton(icon: const Icon(Icons.refresh), onPressed: _loadGoals),
+        ],
       ),
       body: Padding(
         padding: const EdgeInsets.all(16),
@@ -90,44 +130,28 @@ class _ManageGoalsPageState extends State<ManageGoalsPage> {
                 padding: const EdgeInsets.all(16),
                 child: Column(
                   children: [
-                    DropdownButtonFormField<String>(
-                      initialValue: selectedTeam,
-                      decoration: const InputDecoration(
-                        labelText: 'Equipe',
-                        border: OutlineInputBorder(),
-                      ),
-                      items: teams
-                          .map((t) => DropdownMenuItem(
-                                value: t,
-                                child: Text(t),
-                              ))
-                          .toList(),
-                      onChanged: (v) => setState(() => selectedTeam = v),
+                    DropdownButtonFormField<TeamLite>(
+                      value: _selectedTeam,
+                      decoration: const InputDecoration(labelText: 'Equipe', border: OutlineInputBorder()),
+                      items: p.teams.map((t) => DropdownMenuItem(value: t, child: Text(t.name))).toList(),
+                      onChanged: (v) => setState(() => _selectedTeam = v),
                     ),
                     const SizedBox(height: 12),
                     DropdownButtonFormField<FoodCategory>(
-                      initialValue: selectedCategory,
-                      decoration: const InputDecoration(
-                        labelText: 'Categoria',
-                        border: OutlineInputBorder(),
-                      ),
+                      value: _selectedCategory,
+                      decoration: const InputDecoration(labelText: 'Categoria', border: OutlineInputBorder()),
                       items: FoodCategory.values
-                          .map((c) => DropdownMenuItem(
-                                value: c,
-                                child: Text(foodCategoryLabel(c)),
-                              ))
+                          .map((c) => DropdownMenuItem(value: c, child: Text(foodCategoryLabel(c))))
                           .toList(),
-                      onChanged: (v) {
-                        if (v == null) return;
-                        setState(() => selectedCategory = v);
-                      },
+                      onChanged: (v) { if (v != null) setState(() => _selectedCategory = v); },
                     ),
                     const SizedBox(height: 12),
                     TextField(
-                      controller: targetController,
-                      keyboardType: TextInputType.number,
+                      controller: _targetController,
+                      keyboardType: const TextInputType.numberWithOptions(decimal: true),
                       decoration: const InputDecoration(
-                        labelText: 'Meta (quantidade)',
+                        labelText: 'Meta (kg)',
+                        suffixText: 'kg',
                         border: OutlineInputBorder(),
                       ),
                     ),
@@ -136,11 +160,9 @@ class _ManageGoalsPageState extends State<ManageGoalsPage> {
                       width: double.infinity,
                       height: 48,
                       child: ElevatedButton(
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: AppColors.primary,
-                        ),
-                        onPressed: saveGoal,
-                        child: const Text('Salvar meta'),
+                        style: ElevatedButton.styleFrom(backgroundColor: AppColors.primary),
+                        onPressed: _loading ? null : _saveGoal,
+                        child: const Text('Salvar meta', style: TextStyle(color: Colors.white)),
                       ),
                     ),
                   ],
@@ -149,46 +171,28 @@ class _ManageGoalsPageState extends State<ManageGoalsPage> {
             ),
             const SizedBox(height: 16),
             Expanded(
-              child: appProvider.goals.isEmpty
-                  ? const Center(child: Text('Nenhuma meta cadastrada'))
-                  : ListView.separated(
-                      itemCount: appProvider.goals.length,
-                      separatorBuilder: (_, _) => const SizedBox(height: 8),
-                      itemBuilder: (context, index) {
-                        final g = appProvider.goals[index];
-                        final current = appProvider.countReadingsFor(
-                          teamName: g.teamName,
-                          category: g.category,
-                        );
-                        final progress = g.target == 0
-                            ? 0.0
-                            : (current / g.target).clamp(0.0, 1.0);
-
-                        return Card(
-                          child: ListTile(
-                            leading: Icon(Icons.flag, color: AppColors.primary),
-                            title: Text('${g.teamName} • ${foodCategoryLabel(g.category)}'),
-                            subtitle: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text('Meta: ${g.target} | Atual: $current'),
-                                const SizedBox(height: 6),
-                                LinearProgressIndicator(value: progress),
-                              ],
-                            ),
-                            trailing: IconButton(
-                              icon: const Icon(Icons.delete, color: Colors.red),
-                              onPressed: () {
-                                appProvider.removeGoal(g);
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  const SnackBar(content: Text('Meta removida')),
-                                );
-                              },
-                            ),
-                          ),
-                        );
-                      },
-                    ),
+              child: _loading
+                  ? const Center(child: CircularProgressIndicator())
+                  : _goals.isEmpty
+                      ? const Center(child: Text('Nenhuma meta cadastrada'))
+                      : ListView.separated(
+                          itemCount: _goals.length,
+                          separatorBuilder: (_, __) => const SizedBox(height: 8),
+                          itemBuilder: (context, i) {
+                            final g = _goals[i];
+                            return Card(
+                              child: ListTile(
+                                leading: Icon(Icons.flag, color: AppColors.primary),
+                                title: Text('${g.teamName ?? "Equipe ${g.teamId}"} • ${foodCategoryLabel(g.category)}'),
+                                subtitle: Text('Meta: ${g.targetKg.toStringAsFixed(1)} kg'),
+                                trailing: IconButton(
+                                  icon: const Icon(Icons.delete, color: Colors.red),
+                                  onPressed: () => _deleteGoal(g.id),
+                                ),
+                              ),
+                            );
+                          },
+                        ),
             ),
           ],
         ),

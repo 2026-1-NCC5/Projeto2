@@ -6,6 +6,7 @@ import '../../../core/routes/app_routes.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/api/api_client.dart';
 import '../../../core/api/auth_api.dart';
+import '../../../core/api/teams_api.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -54,10 +55,19 @@ class _LoginPageState extends State<LoginPage> {
       final me = await auth.me();
 
       appProvider.setUserFromBackend(
+        id: me['id'],
         name: me['name'],
         email: me['email'],
         role: me['role'],
+        teamId: me['team_id'],
+        teamName: me['team_name'],
       );
+
+      final teamsClient = ApiClient();
+      teamsClient.setToken(token);
+      final teamsApi = TeamsApi(teamsClient);
+      final teamsData = await teamsApi.getTeams();
+      appProvider.setTeams(teamsData);
 
       if (!mounted) return;
 

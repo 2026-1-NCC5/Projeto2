@@ -74,9 +74,12 @@ class _RegisterPageState extends State<RegisterPage> {
       // ✅ pega perfil real do backend e seta no provider
       final me = await auth.me();
       appProvider.setUserFromBackend(
+        id: me['id'],
         name: me['name'],
         email: me['email'],
         role: me['role'],
+        teamId: me['team_id'],
+        teamName: me['team_name'],
       );
 
       ScaffoldMessenger.of(context).showSnackBar(

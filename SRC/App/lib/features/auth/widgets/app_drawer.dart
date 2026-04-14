@@ -15,14 +15,10 @@ class AppDrawer extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final appProvider = Provider.of<AppProvider>(context);
-
-    final name =
-        appProvider.name.trim().isEmpty ? 'Usuário' : appProvider.name.trim();
-    final email =
-        appProvider.email.trim().isEmpty ? 'sem email' : appProvider.email.trim();
-    final roleText = roleLabel(appProvider.userRole);
-    final teamText = appProvider.activeTeam?.name ?? 'Nenhuma equipe';
+    final p = Provider.of<AppProvider>(context);
+    final name = p.name.trim().isEmpty ? 'Usuário' : p.name.trim();
+    final email = p.email.trim().isEmpty ? 'sem email' : p.email.trim();
+    final teamText = p.activeTeam?.name ?? 'Nenhuma equipe';
 
     return Drawer(
       child: Column(
@@ -43,69 +39,86 @@ class AppDrawer extends StatelessWidget {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(
-                        name,
-                        style: const TextStyle(
-                          color: Colors.white,
-                          fontSize: 16,
-                          fontWeight: FontWeight.bold,
-                        ),
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                      const SizedBox(height: 2),
-                      Text(
-                        email,
-                        style: const TextStyle(color: Colors.white70),
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                      const SizedBox(height: 6),
-                      Text(
-                        roleText,
-                        style: const TextStyle(
-                          color: Colors.white,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
+                      Text(name,
+                          style: const TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold),
+                          overflow: TextOverflow.ellipsis),
+                      Text(email,
+                          style: const TextStyle(color: Colors.white70),
+                          overflow: TextOverflow.ellipsis),
                       const SizedBox(height: 4),
-                      Text(
-                        'Equipe: $teamText',
-                        style: const TextStyle(color: Colors.white70),
-                        overflow: TextOverflow.ellipsis,
-                      ),
+                      Text(roleLabel(p.userRole),
+                          style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w600)),
+                      Text('Equipe: $teamText',
+                          style: const TextStyle(color: Colors.white70),
+                          overflow: TextOverflow.ellipsis),
                     ],
                   ),
                 ),
               ],
             ),
           ),
-
           const Divider(),
 
-          ListTile(
-            leading: const Icon(Icons.edit),
-            title: const Text('Editar Perfil'),
-            onTap: () => _go(context, AppRoutes.editProfile),
-          ),
+          // ─── Operador ───
+          if (p.isOperador) ...[
+            ListTile(
+              leading: const Icon(Icons.set_meal),
+              title: const Text('Registrar Alimentos'),
+              onTap: () => _go(context, AppRoutes.foodRegister),
+            ),
+            ListTile(
+              leading: const Icon(Icons.history),
+              title: const Text('Leituras'),
+              onTap: () => _go(context, AppRoutes.readings),
+            ),
+          ],
 
-          if (appProvider.isAdmin) ...[
+          // ─── Coordenador ───
+          if (p.isCoordenador) ...[
+            ListTile(
+              leading: const Icon(Icons.set_meal),
+              title: const Text('Registrar Alimentos'),
+              onTap: () => _go(context, AppRoutes.foodRegister),
+            ),
+            ListTile(
+              leading: const Icon(Icons.history),
+              title: const Text('Leituras'),
+              onTap: () => _go(context, AppRoutes.readings),
+            ),
+            ListTile(
+              leading: const Icon(Icons.bar_chart),
+              title: const Text('Dashboard da Equipe'),
+              onTap: () => _go(context, AppRoutes.coordinatorDashboard),
+            ),
+            ListTile(
+              leading: const Icon(Icons.download),
+              title: const Text('Exportar'),
+              onTap: () => _go(context, AppRoutes.export),
+            ),
+          ],
+
+          // ─── Admin ───
+          if (p.isAdmin) ...[
+            ListTile(
+              leading: const Icon(Icons.dashboard),
+              title: const Text('Dashboard Geral'),
+              onTap: () => _go(context, AppRoutes.adminDashboard),
+            ),
             ListTile(
               leading: const Icon(Icons.people),
               title: const Text('Gerenciar Usuários'),
               onTap: () => _go(context, AppRoutes.manageUsers),
             ),
             ListTile(
-              leading: const Icon(Icons.groups),
-              title: const Text('Gerenciar Equipes'),
-              onTap: () => _go(context, AppRoutes.manageTeams),
-            ),
-            ListTile(
               leading: const Icon(Icons.flag),
               title: const Text('Gerenciar Metas'),
               onTap: () => _go(context, AppRoutes.manageGoals),
             ),
-          ],
-
-          if (appProvider.isCoordenador || appProvider.isAdmin) ...[
+            ListTile(
+              leading: const Icon(Icons.groups),
+              title: const Text('Gerenciar Equipes'),
+              onTap: () => _go(context, AppRoutes.manageTeams),
+            ),
             ListTile(
               leading: const Icon(Icons.table_chart),
               title: const Text('Tabela de Dados'),
@@ -118,27 +131,14 @@ class AppDrawer extends StatelessWidget {
             ),
           ],
 
-          if (appProvider.isOperador) ...[
-            ListTile(
-              leading: const Icon(Icons.groups_2),
-              title: const Text('Selecionar Equipe'),
-              onTap: () => _go(context, AppRoutes.team),
-            ),
-            ListTile(
-              leading: const Icon(Icons.camera_alt),
-              title: const Text('Câmera'),
-              onTap: () => _go(context, AppRoutes.camera),
-            ),
-            ListTile(
-              leading: const Icon(Icons.history),
-              title: const Text('Leituras'),
-              onTap: () => _go(context, AppRoutes.readings),
-            ),
-          ],
-
+          const Divider(),
+          ListTile(
+            leading: const Icon(Icons.edit),
+            title: const Text('Editar Perfil'),
+            onTap: () => _go(context, AppRoutes.editProfile),
+          ),
           const Spacer(),
           const Divider(),
-
           ListTile(
             leading: const Icon(Icons.logout),
             title: const Text('Sair da conta'),

@@ -13,7 +13,7 @@ String roleLabel(UserRole role) {
   }
 }
 
-enum FoodCategory { arroz, feijao, outros }
+enum FoodCategory { arroz, feijao, macarrao, acucar, outros }
 
 String foodCategoryLabel(FoodCategory c) {
   switch (c) {
@@ -21,8 +21,44 @@ String foodCategoryLabel(FoodCategory c) {
       return 'Arroz';
     case FoodCategory.feijao:
       return 'Feijão';
+    case FoodCategory.macarrao:
+      return 'Macarrão';
+    case FoodCategory.acucar:
+      return 'Açúcar';
     case FoodCategory.outros:
       return 'Outros';
+  }
+}
+
+FoodCategory? foodCategoryFromString(String s) {
+  switch (s) {
+    case 'arroz':
+      return FoodCategory.arroz;
+    case 'feijao':
+      return FoodCategory.feijao;
+    case 'macarrao':
+      return FoodCategory.macarrao;
+    case 'acucar':
+      return FoodCategory.acucar;
+    case 'outros':
+      return FoodCategory.outros;
+    default:
+      return null;
+  }
+}
+
+String foodCategoryToString(FoodCategory c) {
+  switch (c) {
+    case FoodCategory.arroz:
+      return 'arroz';
+    case FoodCategory.feijao:
+      return 'feijao';
+    case FoodCategory.macarrao:
+      return 'macarrao';
+    case FoodCategory.acucar:
+      return 'acucar';
+    case FoodCategory.outros:
+      return 'outros';
   }
 }
 
@@ -40,51 +76,109 @@ class TeamLite {
 }
 
 class ReadingEvent {
+  final int id;
   final int teamId;
   final String teamName;
+  final int? userId;
+  final String? userName;
   final FoodCategory category;
+  final double kgAmount;
   final DateTime timestamp;
-  final String operatorName;
-  final double? confidence;
 
   const ReadingEvent({
+    required this.id,
     required this.teamId,
     required this.teamName,
+    this.userId,
+    this.userName,
     required this.category,
+    required this.kgAmount,
     required this.timestamp,
-    required this.operatorName,
-    this.confidence,
   });
+
+  factory ReadingEvent.fromMap(Map<String, dynamic> m) {
+    return ReadingEvent(
+      id: (m['id'] as num).toInt(),
+      teamId: (m['team_id'] as num).toInt(),
+      teamName: (m['team_name'] ?? '').toString(),
+      userId: m['user_id'] != null ? (m['user_id'] as num).toInt() : null,
+      userName: m['user_name']?.toString(),
+      category: foodCategoryFromString(m['category'] ?? '') ?? FoodCategory.outros,
+      kgAmount: (m['kg_amount'] as num?)?.toDouble() ?? 0.0,
+      timestamp: DateTime.tryParse(m['created_at'] ?? '') ?? DateTime.now(),
+    );
+  }
 }
 
-class Goal {
+class ReadingSummary {
   final int teamId;
   final String teamName;
   final FoodCategory category;
-  final int target;
+  final double totalKg;
 
-  const Goal({
+  const ReadingSummary({
     required this.teamId,
     required this.teamName,
     required this.category,
-    required this.target,
+    required this.totalKg,
   });
+
+  factory ReadingSummary.fromMap(Map<String, dynamic> m) {
+    return ReadingSummary(
+      teamId: (m['team_id'] as num).toInt(),
+      teamName: (m['team_name'] ?? '').toString(),
+      category: foodCategoryFromString(m['category'] ?? '') ?? FoodCategory.outros,
+      totalKg: (m['total_kg'] as num?)?.toDouble() ?? 0.0,
+    );
+  }
+}
+
+class GoalItem {
+  final int id;
+  final int teamId;
+  final String? teamName;
+  final FoodCategory category;
+  final double targetKg;
+
+  const GoalItem({
+    required this.id,
+    required this.teamId,
+    this.teamName,
+    required this.category,
+    required this.targetKg,
+  });
+
+  factory GoalItem.fromMap(Map<String, dynamic> m) {
+    return GoalItem(
+      id: (m['id'] as num).toInt(),
+      teamId: (m['team_id'] as num).toInt(),
+      teamName: m['team_name']?.toString(),
+      category: foodCategoryFromString(m['category'] ?? '') ?? FoodCategory.outros,
+      targetKg: (m['target_kg'] as num?)?.toDouble() ?? 0.0,
+    );
+  }
 }
 
 class AppProvider extends ChangeNotifier {
   UserRole _userRole = UserRole.operador;
+  int? _userId;
   String _name = '';
   String _email = '';
   String? _token;
+  int? _userTeamId;
+  String? _userTeamName;
 
   UserRole get userRole => _userRole;
+  int? get userId => _userId;
   String get name => _name;
   String get email => _email;
   String? get token => _token;
+  int? get userTeamId => _userTeamId;
 
   bool get isAdmin => _userRole == UserRole.admin;
   bool get isCoordenador => _userRole == UserRole.coordenador;
   bool get isOperador => _userRole == UserRole.operador;
+  bool get isTeamLocked => _userRole != UserRole.admin;
 
   String get homeRoute {
     switch (_userRole) {
@@ -103,12 +197,18 @@ class AppProvider extends ChangeNotifier {
   }
 
   void setUserFromBackend({
+    required int id,
     required String name,
     required String email,
     required String role,
+    int? teamId,
+    String? teamName,
   }) {
+    _userId = id;
     _name = name.trim();
     _email = email.trim();
+    _userTeamId = teamId;
+    _userTeamName = teamName;
 
     if (role == 'admin') {
       _userRole = UserRole.admin;
@@ -116,6 +216,11 @@ class AppProvider extends ChangeNotifier {
       _userRole = UserRole.coordenador;
     } else {
       _userRole = UserRole.operador;
+    }
+
+    // Lock team for non-admin
+    if (teamId != null && teamName != null && _userRole != UserRole.admin) {
+      _activeTeam = TeamLite(id: teamId, name: teamName);
     }
 
     notifyListeners();
@@ -135,85 +240,43 @@ class AppProvider extends ChangeNotifier {
 
   void setTeams(List<Map<String, dynamic>> data) {
     _teams = data.map(TeamLite.fromMap).toList();
-
     if (_activeTeam != null && !_teams.any((t) => t.id == _activeTeam!.id)) {
-      _activeTeam = null;
+      if (isTeamLocked) {
+        // Keep the locked team even if not in the list
+      } else {
+        _activeTeam = null;
+      }
     }
     notifyListeners();
   }
 
   void setActiveTeam(TeamLite? team) {
+    if (isTeamLocked) return; // Admin-only action
     _activeTeam = team;
     notifyListeners();
   }
 
-  final List<ReadingEvent> _readings = [];
+  List<ReadingEvent> _readings = [];
   List<ReadingEvent> get readings => List.unmodifiable(_readings);
 
-  void addReading({required FoodCategory category, double? confidence}) {
-    final team = _activeTeam;
-    if (team == null) return;
-
-    final operator = _name.trim().isEmpty ? 'Usuário' : _name.trim();
-
-    _readings.insert(
-      0,
-      ReadingEvent(
-        teamId: team.id,
-        teamName: team.name,
-        category: category,
-        timestamp: DateTime.now(),
-        operatorName: operator,
-        confidence: confidence,
-      ),
-    );
-
+  void setReadings(List<Map<String, dynamic>> data) {
+    _readings = data.map(ReadingEvent.fromMap).toList();
     notifyListeners();
   }
 
-  int countReadingsFor({
-    required String teamName,
-    required FoodCategory category,
-  }) {
-    return _readings
-        .where((r) => r.teamName == teamName && r.category == category)
-        .length;
-  }
+  List<ReadingSummary> _summary = [];
+  List<ReadingSummary> get summary => List.unmodifiable(_summary);
 
-  final List<Goal> _goals = [];
-  List<Goal> get goals => List.unmodifiable(_goals);
-
-  void upsertGoal({
-    required String teamName,
-    required FoodCategory category,
-    required int target,
-  }) {
-    final team = _teams.where((t) => t.name == teamName).toList();
-    if (team.isEmpty) return;
-
-    final t = team.first;
-    final idx = _goals.indexWhere(
-      (g) => g.teamId == t.id && g.category == category,
-    );
-
-    final newGoal = Goal(
-      teamId: t.id,
-      teamName: t.name,
-      category: category,
-      target: target,
-    );
-
-    if (idx >= 0) {
-      _goals[idx] = newGoal;
-    } else {
-      _goals.add(newGoal);
-    }
-
+  void setSummary(List<Map<String, dynamic>> data) {
+    _summary = data.map(ReadingSummary.fromMap).toList();
     notifyListeners();
   }
 
-  void removeGoal(Goal g) {
-    _goals.removeWhere((x) => x.teamId == g.teamId && x.category == g.category);
+  List<GoalItem> _goals = [];
+  List<GoalItem> get goals => List.unmodifiable(_goals);
+
+  void setGoals(List<Map<String, dynamic>> data) {
+    _goals = data.map(GoalItem.fromMap).toList();
     notifyListeners();
   }
 
@@ -224,38 +287,24 @@ class AppProvider extends ChangeNotifier {
     DateTime? endDate,
   }) {
     final buffer = StringBuffer();
-    buffer.writeln('team,category,operator,timestamp,confidence');
+    buffer.writeln('equipe,operador,categoria,kg,data');
 
     final filtered = _readings.where((r) {
-      final matchTeam = teamFilter == 'Todas' || r.teamName == teamFilter;
-
-      final matchCategory =
-          categoryFilter == 'Todas' ||
-          foodCategoryLabel(r.category) == categoryFilter;
-
-      final matchStart =
-          startDate == null ||
-          r.timestamp.isAfter(
-            DateTime(startDate.year, startDate.month, startDate.day),
-          );
-
-      final matchEnd =
-          endDate == null ||
-          r.timestamp.isBefore(
-            DateTime(endDate.year, endDate.month, endDate.day + 1),
-          );
-
-      return matchTeam && matchCategory && matchStart && matchEnd;
+      final okTeam = teamFilter == 'Todas' || r.teamName == teamFilter;
+      final label = foodCategoryLabel(r.category);
+      final okCategory = categoryFilter == 'Todas' || label == categoryFilter;
+      bool okDate = true;
+      if (startDate != null) {
+        okDate = okDate && !r.timestamp.isBefore(DateTime(startDate.year, startDate.month, startDate.day));
+      }
+      if (endDate != null) {
+        okDate = okDate && !r.timestamp.isAfter(DateTime(endDate.year, endDate.month, endDate.day + 1));
+      }
+      return okTeam && okCategory && okDate;
     });
 
     for (final r in filtered) {
-      buffer.writeln(
-        '${r.teamName},'
-        '${foodCategoryLabel(r.category)},'
-        '${r.operatorName},'
-        '${r.timestamp.toIso8601String()},'
-        '${r.confidence?.toStringAsFixed(4) ?? ""}',
-      );
+      buffer.writeln('${r.teamName},${r.userName ?? ""},${foodCategoryLabel(r.category)},${r.kgAmount},${r.timestamp.toIso8601String()}');
     }
 
     return buffer.toString();
@@ -263,10 +312,16 @@ class AppProvider extends ChangeNotifier {
 
   void logout() {
     _userRole = UserRole.operador;
+    _userId = null;
     _name = '';
     _email = '';
     _token = null;
     _activeTeam = null;
+    _userTeamId = null;
+    _userTeamName = null;
+    _readings = [];
+    _summary = [];
+    _goals = [];
     notifyListeners();
   }
 }
