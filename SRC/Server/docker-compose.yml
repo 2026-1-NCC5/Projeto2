@@ -11,6 +11,11 @@ services:
       - postgres_data:/var/lib/postgresql/data
     networks:
       - appnet
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
 
   backend:
     build: .
@@ -19,11 +24,10 @@ services:
     env_file:
       - .env
     depends_on:
-      - db
+      db:
+        condition: service_healthy
     volumes:
       - ./app:/app/app
-      - ./uploads:/app/uploads
-      - ../camera_ai:/app/camera_ai
     ports:
       - "8000:8000"
     networks:
