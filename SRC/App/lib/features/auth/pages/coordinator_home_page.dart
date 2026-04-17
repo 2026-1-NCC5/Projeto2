@@ -46,18 +46,18 @@ class CoordinatorHomePage extends StatelessWidget {
             ),
             Card(
               child: ListTile(
-                leading: const Icon(Icons.history, size: 30),
-                title: const Text('Leituras'),
-                subtitle: const Text('Ver registros enviados'),
-                onTap: () => Navigator.pushReplacementNamed(context, AppRoutes.readings),
+                leading: const Icon(Icons.flag, size: 30),
+                title: const Text('Metas'),
+                subtitle: const Text('Ver progresso das metas'),
+                onTap: () => Navigator.pushReplacementNamed(context, AppRoutes.goals),
               ),
             ),
             Card(
               child: ListTile(
-                leading: const Icon(Icons.download, size: 30),
-                title: const Text('Exportar'),
-                subtitle: const Text('Gerar CSV da equipe'),
-                onTap: () => Navigator.pushReplacementNamed(context, AppRoutes.export),
+                leading: const Icon(Icons.table_chart, size: 30),
+                title: const Text('Tabela de Dados'),
+                subtitle: const Text('Ver e exportar registros'),
+                onTap: () => Navigator.pushReplacementNamed(context, AppRoutes.dataTable),
               ),
             ),
           ],

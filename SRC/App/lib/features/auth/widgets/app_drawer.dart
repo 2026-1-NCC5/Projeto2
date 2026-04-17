@@ -67,9 +67,9 @@ class AppDrawer extends StatelessWidget {
               onTap: () => _go(context, AppRoutes.foodRegister),
             ),
             ListTile(
-              leading: const Icon(Icons.history),
-              title: const Text('Leituras'),
-              onTap: () => _go(context, AppRoutes.readings),
+              leading: const Icon(Icons.table_chart),
+              title: const Text('Tabela de Dados'),
+              onTap: () => _go(context, AppRoutes.dataTable),
             ),
           ],
 
@@ -81,19 +81,19 @@ class AppDrawer extends StatelessWidget {
               onTap: () => _go(context, AppRoutes.foodRegister),
             ),
             ListTile(
-              leading: const Icon(Icons.history),
-              title: const Text('Leituras'),
-              onTap: () => _go(context, AppRoutes.readings),
-            ),
-            ListTile(
               leading: const Icon(Icons.bar_chart),
               title: const Text('Dashboard da Equipe'),
               onTap: () => _go(context, AppRoutes.coordinatorDashboard),
             ),
             ListTile(
-              leading: const Icon(Icons.download),
-              title: const Text('Exportar'),
-              onTap: () => _go(context, AppRoutes.export),
+              leading: const Icon(Icons.flag),
+              title: const Text('Metas'),
+              onTap: () => _go(context, AppRoutes.goals),
+            ),
+            ListTile(
+              leading: const Icon(Icons.table_chart),
+              title: const Text('Tabela de Dados'),
+              onTap: () => _go(context, AppRoutes.dataTable),
             ),
           ],
 
@@ -123,11 +123,6 @@ class AppDrawer extends StatelessWidget {
               leading: const Icon(Icons.table_chart),
               title: const Text('Tabela de Dados'),
               onTap: () => _go(context, AppRoutes.dataTable),
-            ),
-            ListTile(
-              leading: const Icon(Icons.download),
-              title: const Text('Exportar'),
-              onTap: () => _go(context, AppRoutes.export),
             ),
           ],
 

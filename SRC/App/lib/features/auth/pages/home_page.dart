@@ -38,10 +38,10 @@ class HomePage extends StatelessWidget {
             ),
             Card(
               child: ListTile(
-                leading: const Icon(Icons.history, size: 30),
-                title: const Text('Leituras'),
+                leading: const Icon(Icons.table_chart, size: 30),
+                title: const Text('Tabela de Dados'),
                 subtitle: const Text('Ver registros enviados'),
-                onTap: () => Navigator.pushReplacementNamed(context, AppRoutes.readings),
+                onTap: () => Navigator.pushReplacementNamed(context, AppRoutes.dataTable),
               ),
             ),
           ],

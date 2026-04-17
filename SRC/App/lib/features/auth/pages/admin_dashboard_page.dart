@@ -67,7 +67,7 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
 
   double _target(FoodCategory cat) {
     final g = _filteredGoals.where((g) => g.category == cat);
-    return g.isEmpty ? 0.0 : g.first.targetKg;
+    return g.fold(0.0, (s, g) => s + g.targetKg);
   }
 
   double get _filteredTotal => _filteredSummary.fold(0.0, (s, r) => s + r.totalKg);
