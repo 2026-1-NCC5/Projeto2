@@ -33,12 +33,14 @@ def register(data: RegisterRequest, db: Session = Depends(get_db)):
     if exists:
         raise HTTPException(status_code=400, detail="Email já cadastrado")
 
+    team_id = data.team_id if data.team_id else None
+
     user = User(
         name=data.name,
         email=data.email,
         password_hash=hash_password(data.password),
         role=data.role,
-        team_id=data.team_id,
+        team_id=team_id,
         active=True,
     )
     db.add(user)
