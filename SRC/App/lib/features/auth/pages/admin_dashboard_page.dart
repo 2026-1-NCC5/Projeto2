@@ -8,6 +8,7 @@ import '../../../core/api/readings_api.dart';
 import '../../../core/providers/app_provider.dart';
 import '../../../core/routes/app_routes.dart';
 import '../../../core/theme/app_colors.dart';
+import '../../../core/utils/export_downloader.dart';
 
 class AdminDashboardPage extends StatefulWidget {
   const AdminDashboardPage({super.key});
@@ -73,6 +74,49 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
   double get _filteredTotal => _filteredSummary.fold(0.0, (s, r) => s + r.totalKg);
   double get _filteredTargetTotal => _filteredGoals.fold(0.0, (s, g) => s + g.targetKg);
 
+  Future<void> _exportDashboard() async {
+    final label = _selectedTeam == null ? 'Todas as Equipes' : _selectedTeam!.name;
+    final now = DateTime.now();
+    final dateStr =
+        '${now.day.toString().padLeft(2, '0')}/${now.month.toString().padLeft(2, '0')}/${now.year}';
+
+    final buf = StringBuffer();
+    buf.writeln('Dashboard Geral — $label — $dateStr');
+    buf.writeln('');
+    buf.writeln('categoria,coletado_kg,meta_kg,progresso_%');
+
+    for (final cat in FoodCategory.values) {
+      final collected = _collected(cat);
+      final target = _target(cat);
+      final pct = target > 0 ? (collected / target * 100).toStringAsFixed(1) : '—';
+      buf.writeln('${foodCategoryLabel(cat)},${collected.toStringAsFixed(2)},${target > 0 ? target.toStringAsFixed(2) : "—"},$pct');
+    }
+
+    buf.writeln('');
+    final totalTarget = _filteredTargetTotal;
+    final totalPct = totalTarget > 0
+        ? (_filteredTotal / totalTarget * 100).toStringAsFixed(1)
+        : '—';
+    buf.writeln('TOTAL,${_filteredTotal.toStringAsFixed(2)},${totalTarget.toStringAsFixed(2)},$totalPct');
+
+    final fileName = _selectedTeam == null
+        ? 'dashboard_geral.csv'
+        : 'dashboard_${_selectedTeam!.name.replaceAll(' ', '_')}.csv';
+
+    try {
+      await downloadCsv(fileName, buf.toString());
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(backgroundColor: AppColors.green, content: const Text('Dashboard exportado')),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Erro: $e')));
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final p = Provider.of<AppProvider>(context);
@@ -89,6 +133,11 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
           onPressed: () => Navigator.pushReplacementNamed(context, p.homeRoute),
         ),
         actions: [
+          IconButton(
+            icon: const Icon(Icons.download),
+            tooltip: 'Exportar CSV',
+            onPressed: _loading ? null : _exportDashboard,
+          ),
           IconButton(icon: const Icon(Icons.refresh), onPressed: _loadData),
         ],
       ),

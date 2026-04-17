@@ -8,6 +8,7 @@ import '../../../core/api/readings_api.dart';
 import '../../../core/providers/app_provider.dart';
 import '../../../core/routes/app_routes.dart';
 import '../../../core/theme/app_colors.dart';
+import '../../../core/utils/export_downloader.dart';
 
 class CoordinatorDashboardPage extends StatefulWidget {
   const CoordinatorDashboardPage({super.key});
@@ -63,6 +64,45 @@ class _CoordinatorDashboardPageState extends State<CoordinatorDashboardPage> {
   double get _totalCollected => _summary.fold(0.0, (s, r) => s + r.totalKg);
   double get _totalTarget => _goals.fold(0.0, (s, g) => s + g.targetKg);
 
+  Future<void> _exportDashboard() async {
+    final p = Provider.of<AppProvider>(context, listen: false);
+    final teamName = p.activeTeam?.name ?? 'Equipe';
+    final now = DateTime.now();
+    final dateStr =
+        '${now.day.toString().padLeft(2, '0')}/${now.month.toString().padLeft(2, '0')}/${now.year}';
+
+    final buf = StringBuffer();
+    buf.writeln('Dashboard — $teamName — $dateStr');
+    buf.writeln('');
+    buf.writeln('categoria,coletado_kg,meta_kg,progresso_%');
+
+    for (final cat in FoodCategory.values) {
+      final collected = _collected(cat);
+      final target = _target(cat);
+      final pct = target > 0 ? (collected / target * 100).toStringAsFixed(1) : '—';
+      buf.writeln('${foodCategoryLabel(cat)},${collected.toStringAsFixed(2)},${target > 0 ? target.toStringAsFixed(2) : "—"},$pct');
+    }
+
+    buf.writeln('');
+    final totalPct = _totalTarget > 0
+        ? (_totalCollected / _totalTarget * 100).toStringAsFixed(1)
+        : '—';
+    buf.writeln('TOTAL,${_totalCollected.toStringAsFixed(2)},${_totalTarget.toStringAsFixed(2)},$totalPct');
+
+    try {
+      await downloadCsv('dashboard_${teamName.replaceAll(' ', '_')}.csv', buf.toString());
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(backgroundColor: AppColors.green, content: const Text('Dashboard exportado')),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Erro: $e')));
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final p = Provider.of<AppProvider>(context);
@@ -79,6 +119,11 @@ class _CoordinatorDashboardPageState extends State<CoordinatorDashboardPage> {
           onPressed: () => Navigator.pushReplacementNamed(context, p.homeRoute),
         ),
         actions: [
+          IconButton(
+            icon: const Icon(Icons.download),
+            tooltip: 'Exportar CSV',
+            onPressed: _loading ? null : _exportDashboard,
+          ),
           IconButton(icon: const Icon(Icons.refresh), onPressed: _loadData),
         ],
       ),
