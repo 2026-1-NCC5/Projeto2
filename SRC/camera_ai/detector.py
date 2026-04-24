@@ -8,6 +8,7 @@ from datetime import datetime
 from ultralytics import YOLO
 
 MODEL_PATH = "runs/detect/treino/treino_alimentos/weights/best.pt"
+STOP_FILE = ".camera_stop"
 CAMERA_INDEX = 0
 CONFIDENCE_THRESHOLD = 0.60
 REQUIRED_FRAMES = 5
@@ -19,11 +20,9 @@ LOG_FILE = os.path.join(LOG_DIR, "readings.csv")
 
 WINDOW_NAME = "Leitura Automatica - YOLOv8 + OpenCV"
 
-# ── Configuração do servidor ──────────────────────────────────────────────────
 SERVER_URL = os.getenv("SERVER_URL", "http://3.80.36.248:8000")
 CAMERA_API_KEY = os.getenv("CAMERA_API_KEY", "camera-secret-key")
 TEAM_ID = int(os.getenv("TEAM_ID", "1"))
-# ─────────────────────────────────────────────────────────────────────────────
 
 PRODUCTS = {
     "arroz":    {"peso_kg": 5.0},
@@ -39,23 +38,16 @@ os.makedirs(LOG_DIR, exist_ok=True)
 
 if not os.path.exists(LOG_FILE):
     with open(LOG_FILE, mode="w", newline="", encoding="utf-8") as f:
-        writer = csv.writer(f)
-        writer.writerow(["timestamp", "category", "confidence", "peso_kg", "evidence_path", "enviado"])
+        csv.writer(f).writerow(["timestamp", "category", "confidence", "peso_kg", "evidence_path", "status"])
 
 if not os.path.exists(MODEL_PATH):
-    raise FileNotFoundError(
-        f"Modelo não encontrado em: {MODEL_PATH}\n"
-        "Treine o YOLO primeiro para gerar o arquivo best.pt."
-    )
+    raise FileNotFoundError(f"Modelo não encontrado em: {MODEL_PATH}")
 
 model = YOLO(MODEL_PATH)
 cap = cv2.VideoCapture(CAMERA_INDEX, cv2.CAP_DSHOW)
 
 if not cap.isOpened():
-    raise RuntimeError(
-        f"Não foi possível abrir a câmera no índice {CAMERA_INDEX}. "
-        "Tente trocar CAMERA_INDEX para 1."
-    )
+    raise RuntimeError(f"Não foi possível abrir a câmera no índice {CAMERA_INDEX}.")
 
 cv2.namedWindow(WINDOW_NAME, cv2.WINDOW_NORMAL)
 cv2.resizeWindow(WINDOW_NAME, 1000, 700)
@@ -64,14 +56,15 @@ stable_label = None
 stable_count = 0
 last_saved_label = None
 last_saved_time = 0.0
-
 total_peso = 0.0
 total_itens = 0
-last_status = ""
+
+# threads pendentes — NÃO são daemon para garantir envio completo ao fechar
+_pending_threads: list[threading.Thread] = []
 
 
-def _send_to_server(label: str, conf: float, peso: float, evidence_path: str):
-    """Envia leitura ao servidor em background (não bloqueia a câmera)."""
+def _send_to_server(label: str, conf: float, peso: float, evidence_path: str, log_row_idx: int):
+    status = "erro"
     try:
         resp = requests.post(
             f"{SERVER_URL}/api/camera-readings",
@@ -83,15 +76,26 @@ def _send_to_server(label: str, conf: float, peso: float, evidence_path: str):
                 "evidence_path": evidence_path,
             },
             headers={"X-Camera-Key": CAMERA_API_KEY},
-            timeout=5,
+            timeout=8,
         )
         if resp.status_code == 200:
-            return True
-        print(f"[SERVIDOR] Erro {resp.status_code}: {resp.text}")
-        return False
+            status = "enviado"
+            print(f"[✓] Enviado ao servidor → {label} | {peso:.1f}kg | conf={conf:.0%}")
+        else:
+            print(f"[✗] Servidor retornou {resp.status_code}: {resp.text}")
     except Exception as e:
-        print(f"[SERVIDOR] Falha ao enviar: {e}")
-        return False
+        print(f"[✗] Falha ao enviar: {e}")
+
+    # atualiza coluna status no CSV
+    try:
+        with open(LOG_FILE, mode="r", encoding="utf-8") as f:
+            rows = list(csv.reader(f))
+        if log_row_idx < len(rows):
+            rows[log_row_idx][-1] = status
+        with open(LOG_FILE, mode="w", newline="", encoding="utf-8") as f:
+            csv.writer(f).writerows(rows)
+    except Exception:
+        pass
 
 
 print(f"Câmera iniciada | Servidor: {SERVER_URL} | Equipe ID: {TEAM_ID}")
@@ -100,76 +104,58 @@ print("Pressione 'q' para sair.")
 while True:
     ret, frame = cap.read()
     if not ret or frame is None:
-        print("Falha ao capturar frame da câmera.")
+        print("Falha ao capturar frame.")
         break
 
     results = model(frame, conf=CONFIDENCE_THRESHOLD, verbose=False)
-    annotated_frame = results[0].plot()
+    annotated_frame = results[0].plot().copy()
 
-    current_detected_label = None
-    current_detected_conf = 0.0
+    current_label = None
+    current_conf = 0.0
 
-    if len(results) > 0 and results[0].boxes is not None and len(results[0].boxes) > 0:
-        best_box = max(results[0].boxes, key=lambda b: float(b.conf[0].item()))
-        cls_id = int(best_box.cls[0].item())
-        conf = float(best_box.conf[0].item())
-        label = model.names[cls_id]
+    if results[0].boxes is not None and len(results[0].boxes) > 0:
+        best = max(results[0].boxes, key=lambda b: float(b.conf[0].item()))
+        current_label = model.names[int(best.cls[0].item())]
+        current_conf = float(best.conf[0].item())
 
-        current_detected_label = label
-        current_detected_conf = conf
-
-        if stable_label == current_detected_label:
+        if stable_label == current_label:
             stable_count += 1
         else:
-            stable_label = current_detected_label
+            stable_label = current_label
             stable_count = 1
 
         if stable_count >= REQUIRED_FRAMES:
             now = time.time()
-
-            if (
-                current_detected_label != last_saved_label
-                or (now - last_saved_time) > COOLDOWN_SECONDS
-            ):
-                timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-                evidence_filename = f"{current_detected_label}_{timestamp}.jpg"
-                evidence_path = os.path.join(EVIDENCE_DIR, evidence_filename)
+            if current_label != last_saved_label or (now - last_saved_time) > COOLDOWN_SECONDS:
+                ts = datetime.now().strftime("%Y%m%d_%H%M%S")
+                evidence_path = os.path.join(EVIDENCE_DIR, f"{current_label}_{ts}.jpg")
                 cv2.imwrite(evidence_path, frame)
 
-                produto = PRODUCTS.get(current_detected_label, {"peso_kg": 1.0})
-                peso = produto["peso_kg"]
-
+                peso = PRODUCTS.get(current_label, {"peso_kg": 1.0})["peso_kg"]
                 total_peso += peso
                 total_itens += 1
 
-                # Envia ao servidor em thread separada
-                threading.Thread(
-                    target=lambda lbl=current_detected_label, c=current_detected_conf, p=peso, ep=evidence_path: (
-                        _send_to_server(lbl, c, p, ep)
-                    ),
-                    daemon=True,
-                ).start()
-
-                # Log local
+                # log local — guarda índice da linha para atualizar status depois
+                with open(LOG_FILE, mode="r", encoding="utf-8") as f:
+                    row_idx = sum(1 for _ in f)  # próxima linha = índice atual
                 with open(LOG_FILE, mode="a", newline="", encoding="utf-8") as f:
-                    writer = csv.writer(f)
-                    writer.writerow([
-                        datetime.now().isoformat(),
-                        current_detected_label,
-                        f"{current_detected_conf:.4f}",
-                        f"{peso:.2f}",
-                        evidence_path,
-                        "enviando",
+                    csv.writer(f).writerow([
+                        datetime.now().isoformat(), current_label,
+                        f"{current_conf:.4f}", f"{peso:.2f}", evidence_path, "pendente",
                     ])
 
-                last_status = (
-                    f"[OK] {current_detected_label} | "
-                    f"conf={current_detected_conf:.0%} | "
-                    f"{peso:.1f}kg"
-                )
-                print(last_status)
+                print(f"[→] Detectado: {current_label} | {peso:.1f}kg | conf={current_conf:.0%} — enviando...")
 
-                last_saved_label = current_detected_label
+                # thread SEM daemon para garantir conclusão ao fechar
+                t = threading.Thread(
+                    target=_send_to_server,
+                    args=(current_label, current_conf, peso, evidence_path, row_idx),
+                    daemon=False,
+                )
+                t.start()
+                _pending_threads.append(t)
+
+                last_saved_label = current_label
                 last_saved_time = now
                 stable_count = 0
     else:
@@ -177,39 +163,40 @@ while True:
         stable_count = 0
 
     # ── Painel inferior ───────────────────────────────────────────────────────
-    panel_width = 360
-    panel_height = 85
-    frame_height, frame_width = annotated_frame.shape[:2]
-    panel_x = int((frame_width - panel_width) / 2)
-    panel_y = frame_height - panel_height - 25
-    radius = 18
-    color = (230, 230, 235)
+    fh, fw = annotated_frame.shape[:2]
+    pw, ph, r = 360, 85, 18
+    px, py = (fw - pw) // 2, fh - ph - 25
+    col = (230, 230, 235)
+    ov = annotated_frame.copy()
+    cv2.rectangle(ov, (px + r, py), (px + pw - r, py + ph), col, -1)
+    cv2.rectangle(ov, (px, py + r), (px + pw, py + ph - r), col, -1)
+    for cx, cy in [(px+r,py+r),(px+pw-r,py+r),(px+r,py+ph-r),(px+pw-r,py+ph-r)]:
+        cv2.circle(ov, (cx, cy), r, col, -1)
+    cv2.addWeighted(ov, 1, annotated_frame, 0, 0, annotated_frame)
 
-    overlay = annotated_frame.copy()
-    cv2.rectangle(overlay, (panel_x + radius, panel_y), (panel_x + panel_width - radius, panel_y + panel_height), color, -1)
-    cv2.rectangle(overlay, (panel_x, panel_y + radius), (panel_x + panel_width, panel_y + panel_height - radius), color, -1)
-    for cx, cy in [
-        (panel_x + radius, panel_y + radius),
-        (panel_x + panel_width - radius, panel_y + radius),
-        (panel_x + radius, panel_y + panel_height - radius),
-        (panel_x + panel_width - radius, panel_y + panel_height - radius),
-    ]:
-        cv2.circle(overlay, (cx, cy), radius, color, -1)
-    cv2.addWeighted(overlay, 1, annotated_frame, 0, 0, annotated_frame)
-
-    orange = (0, 107, 255)  # BGR para FF6B00
-    black = (30, 30, 30)
-
-    cv2.putText(annotated_frame, f"Itens: {total_itens}", (panel_x + 15, panel_y + 30), cv2.FONT_HERSHEY_SIMPLEX, 0.65, orange, 2)
-    cv2.putText(annotated_frame, f"Peso: {total_peso:.1f} kg", (panel_x + 15, panel_y + 62), cv2.FONT_HERSHEY_SIMPLEX, 0.65, black, 2)
-    cv2.putText(annotated_frame, f"Equipe ID: {TEAM_ID}", (panel_x + 200, panel_y + 46), cv2.FONT_HERSHEY_SIMPLEX, 0.6, black, 2)
+    orange, black = (0, 107, 255), (30, 30, 30)
+    cv2.putText(annotated_frame, f"Itens: {total_itens}", (px+15, py+30), cv2.FONT_HERSHEY_SIMPLEX, 0.65, orange, 2)
+    cv2.putText(annotated_frame, f"Peso: {total_peso:.1f} kg", (px+15, py+62), cv2.FONT_HERSHEY_SIMPLEX, 0.65, black, 2)
+    cv2.putText(annotated_frame, f"Equipe ID: {TEAM_ID}", (px+200, py+46), cv2.FONT_HERSHEY_SIMPLEX, 0.6, black, 2)
 
     cv2.imshow(WINDOW_NAME, annotated_frame)
 
     key = cv2.waitKey(1) & 0xFF
     if key == ord("q"):
         break
+    if key == ord("s") or os.path.exists(STOP_FILE):
+        print("[→] Finalizando sessão...")
+        break
 
 cap.release()
 cv2.destroyAllWindows()
-print("Câmera encerrada.")
+
+# aguarda todos os envios pendentes antes de encerrar
+if _pending_threads:
+    pending = [t for t in _pending_threads if t.is_alive()]
+    if pending:
+        print(f"[...] Aguardando {len(pending)} envio(s) pendente(s)...")
+        for t in pending:
+            t.join(timeout=15)
+
+print(f"Câmera encerrada. Total: {total_itens} itens | {total_peso:.1f} kg")

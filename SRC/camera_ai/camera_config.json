@@ -1,0 +1,7 @@
+{
+  "server_url": "http://3.80.36.248:8000",
+  "camera_api_key": "camera-secret-key",
+  "team_id": 1,
+  "admin_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiI3IiwiZW1haWwiOiJhZG1pbkBhZG1pbi5jb20iLCJyb2xlIjoiYWRtaW4iLCJuYW1lIjoiQWRtaW4iLCJ0ZWFtX2lkIjpudWxsLCJleHAiOjE3NzcxNDMzMDF9.LLb-Gbjqt9h-BjFxRwB9kD9Kzj9nDoGvGYn8TVMFxJk",
+  "admin_email": "admin@admin.com"
+}

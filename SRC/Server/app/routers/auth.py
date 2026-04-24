@@ -67,6 +67,30 @@ def login(data: LoginRequest, db: Session = Depends(get_db)):
     return {"access_token": token, "token_type": "bearer"}
 
 
+@router.post("/refresh", response_model=TokenResponse)
+def refresh(authorization: str = Header(default=""), db: Session = Depends(get_db)):
+    """Renova o token sem precisar da senha, desde que o atual ainda seja válido."""
+    if not authorization.startswith("Bearer "):
+        raise HTTPException(status_code=401, detail="Token ausente")
+
+    payload = decode_access_token(authorization.replace("Bearer ", ""))
+    if not payload:
+        raise HTTPException(status_code=401, detail="Token inválido ou expirado")
+
+    user = db.query(User).filter(User.id == int(payload["sub"])).first()
+    if not user or not user.active:
+        raise HTTPException(status_code=401, detail="Usuário inativo")
+
+    token = create_access_token({
+        "sub": str(user.id),
+        "email": user.email,
+        "role": user.role,
+        "name": user.name,
+        "team_id": user.team_id,
+    })
+    return {"access_token": token, "token_type": "bearer"}
+
+
 @router.get("/me", response_model=UserResponse)
 def me(authorization: str = Header(default=""), db: Session = Depends(get_db)):
     if not authorization.startswith("Bearer "):

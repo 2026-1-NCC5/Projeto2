@@ -4,6 +4,7 @@ opencv-python
 requests
 fastapi
 uvicorn[standard]
+python-multipart
 
 # Treinamento
 numpy
@@ -11,6 +12,6 @@ pandas
 matplotlib
 tqdm
 
-# Ferramentas opcionais (notebooks)
-notebook
-jupyter
+# Ferramentas opcionais — instale separadamente se quiser usar Jupyter
+# notebook
+# jupyter
