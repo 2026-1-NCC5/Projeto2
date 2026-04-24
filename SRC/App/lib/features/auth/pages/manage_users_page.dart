@@ -23,6 +23,7 @@ class _ManageUsersPageState extends State<ManageUsersPage> {
   int? selectedTeamId;
   bool active = true;
   bool loading = false;
+  bool _showForm = false;
 
   List<Map<String, dynamic>> users = [];
 
@@ -85,7 +86,14 @@ class _ManageUsersPageState extends State<ManageUsersPage> {
       nameController.clear();
       emailController.clear();
       passwordController.clear();
-      if (mounted) setState(() { selectedRole = 'operador'; selectedTeamId = null; active = true; });
+      if (mounted) {
+        setState(() {
+          selectedRole = 'operador';
+          selectedTeamId = null;
+          active = true;
+          _showForm = false;
+        });
+      }
       await loadUsers();
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -130,21 +138,26 @@ class _ManageUsersPageState extends State<ManageUsersPage> {
 
   Color roleColor(String role) {
     switch (role) {
-      case 'admin': return Colors.red;
-      case 'coordenador': return Colors.orange;
-      default: return Colors.blue;
+      case 'admin':
+        return Colors.red;
+      case 'coordenador':
+        return Colors.orange;
+      default:
+        return Colors.blue;
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    final appProvider = Provider.of<AppProvider>(context, listen: false);
+    final appProvider = Provider.of<AppProvider>(context);
     final teams = appProvider.teams;
 
     return Scaffold(
       appBar: AppBar(
         title: const Text('Gerenciar Usuários'),
         centerTitle: true,
+        backgroundColor: AppColors.primary,
+        foregroundColor: Colors.white,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
           onPressed: () => Navigator.pushReplacementNamed(context, appProvider.homeRoute),
@@ -157,56 +170,108 @@ class _ManageUsersPageState extends State<ManageUsersPage> {
         padding: const EdgeInsets.all(16),
         child: Column(
           children: [
-            Card(
-              child: Padding(
-                padding: const EdgeInsets.all(16),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const Text('Criar novo usuário', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-                    const SizedBox(height: 12),
-                    TextField(controller: nameController, decoration: const InputDecoration(labelText: 'Nome')),
-                    const SizedBox(height: 8),
-                    TextField(controller: emailController, decoration: const InputDecoration(labelText: 'Email')),
-                    const SizedBox(height: 8),
-                    TextField(controller: passwordController, obscureText: true, decoration: const InputDecoration(labelText: 'Senha')),
-                    const SizedBox(height: 8),
-                    DropdownButtonFormField<String>(
-                      value: selectedRole,
-                      decoration: const InputDecoration(labelText: 'Perfil'),
-                      items: const [
-                        DropdownMenuItem(value: 'operador', child: Text('Operador')),
-                        DropdownMenuItem(value: 'coordenador', child: Text('Coordenador')),
-                        DropdownMenuItem(value: 'admin', child: Text('Admin')),
-                      ],
-                      onChanged: (v) { if (v != null) setState(() => selectedRole = v); },
-                    ),
-                    const SizedBox(height: 8),
-                    DropdownButtonFormField<int?>(
-                      value: selectedTeamId,
-                      decoration: const InputDecoration(labelText: 'Equipe (opcional)'),
-                      items: [
-                        const DropdownMenuItem(value: null, child: Text('Sem equipe')),
-                        ...teams.map((t) => DropdownMenuItem(value: t.id, child: Text(t.name))),
-                      ],
-                      onChanged: (v) => setState(() => selectedTeamId = v),
-                    ),
-                    const SizedBox(height: 8),
-                    SwitchListTile(
-                      title: const Text('Usuário ativo'),
-                      value: active,
-                      onChanged: (v) => setState(() => active = v),
-                    ),
-                    const SizedBox(height: 8),
-                    SizedBox(
-                      width: double.infinity,
-                      child: ElevatedButton(
-                        style: ElevatedButton.styleFrom(backgroundColor: AppColors.primary),
-                        onPressed: loading ? null : createUser,
-                        child: const Text('Criar usuário', style: TextStyle(color: Colors.white)),
+            // ─── Botão / Formulário colapsável ───
+            AnimatedCrossFade(
+              duration: const Duration(milliseconds: 250),
+              crossFadeState: _showForm ? CrossFadeState.showSecond : CrossFadeState.showFirst,
+              firstChild: SizedBox(
+                width: double.infinity,
+                child: ElevatedButton.icon(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppColors.primary,
+                    padding: const EdgeInsets.symmetric(vertical: 14),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                  ),
+                  icon: const Icon(Icons.person_add, color: Colors.white),
+                  label: const Text('Criar novo usuário',
+                      style: TextStyle(color: Colors.white, fontSize: 15)),
+                  onPressed: () => setState(() => _showForm = true),
+                ),
+              ),
+              secondChild: Card(
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                child: Padding(
+                  padding: const EdgeInsets.all(16),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          const Text('Novo usuário',
+                              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                          IconButton(
+                            icon: const Icon(Icons.close),
+                            onPressed: () => setState(() => _showForm = false),
+                            visualDensity: VisualDensity.compact,
+                          ),
+                        ],
                       ),
-                    ),
-                  ],
+                      const SizedBox(height: 8),
+                      TextField(
+                          controller: nameController,
+                          decoration: const InputDecoration(
+                              labelText: 'Nome', border: OutlineInputBorder())),
+                      const SizedBox(height: 8),
+                      TextField(
+                          controller: emailController,
+                          decoration: const InputDecoration(
+                              labelText: 'Email', border: OutlineInputBorder())),
+                      const SizedBox(height: 8),
+                      TextField(
+                          controller: passwordController,
+                          obscureText: true,
+                          decoration: const InputDecoration(
+                              labelText: 'Senha', border: OutlineInputBorder())),
+                      const SizedBox(height: 8),
+                      DropdownButtonFormField<String>(
+                        value: selectedRole,
+                        decoration: const InputDecoration(
+                            labelText: 'Perfil', border: OutlineInputBorder()),
+                        items: const [
+                          DropdownMenuItem(value: 'operador', child: Text('Operador')),
+                          DropdownMenuItem(value: 'coordenador', child: Text('Coordenador')),
+                          DropdownMenuItem(value: 'admin', child: Text('Admin')),
+                        ],
+                        onChanged: (v) {
+                          if (v != null) setState(() => selectedRole = v);
+                        },
+                      ),
+                      const SizedBox(height: 8),
+                      DropdownButtonFormField<int?>(
+                        value: selectedTeamId,
+                        decoration: const InputDecoration(
+                            labelText: 'Equipe (opcional)', border: OutlineInputBorder()),
+                        items: [
+                          const DropdownMenuItem(value: null, child: Text('Sem equipe')),
+                          ...teams.map((t) => DropdownMenuItem(value: t.id, child: Text(t.name))),
+                        ],
+                        onChanged: (v) => setState(() => selectedTeamId = v),
+                      ),
+                      const SizedBox(height: 4),
+                      SwitchListTile(
+                        contentPadding: EdgeInsets.zero,
+                        title: const Text('Usuário ativo'),
+                        value: active,
+                        onChanged: (v) => setState(() => active = v),
+                      ),
+                      const SizedBox(height: 4),
+                      SizedBox(
+                        width: double.infinity,
+                        height: 46,
+                        child: ElevatedButton(
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: AppColors.primary,
+                            shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(8)),
+                          ),
+                          onPressed: loading ? null : createUser,
+                          child: const Text('Criar usuário',
+                              style: TextStyle(color: Colors.white)),
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
               ),
             ),
@@ -222,6 +287,8 @@ class _ManageUsersPageState extends State<ManageUsersPage> {
                             final u = users[i];
                             final teamName = u['team_name'] ?? '—';
                             return Card(
+                              shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(10)),
                               child: ListTile(
                                 title: Text(u['name'] ?? ''),
                                 subtitle: Column(
@@ -231,16 +298,26 @@ class _ManageUsersPageState extends State<ManageUsersPage> {
                                     Text('Equipe: $teamName'),
                                     const SizedBox(height: 4),
                                     Row(children: [
-                                      Chip(label: Text(u['role'] ?? ''), backgroundColor: roleColor(u['role'] ?? '')),
+                                      Chip(
+                                          label: Text(u['role'] ?? ''),
+                                          backgroundColor: roleColor(u['role'] ?? '')),
                                       const SizedBox(width: 8),
-                                      Chip(label: Text(u['active'] == true ? 'Ativo' : 'Inativo')),
+                                      Chip(
+                                          label: Text(
+                                              u['active'] == true ? 'Ativo' : 'Inativo')),
                                     ]),
                                   ],
                                 ),
                                 isThreeLine: true,
-                                trailing: Wrap(spacing: 8, children: [
-                                  IconButton(tooltip: 'Ativar/Inativar', onPressed: () => toggleActive(u), icon: const Icon(Icons.swap_horiz)),
-                                  IconButton(tooltip: 'Excluir', onPressed: () => deleteUser(u['id']), icon: const Icon(Icons.delete, color: Colors.red)),
+                                trailing: Wrap(spacing: 4, children: [
+                                  IconButton(
+                                      tooltip: 'Ativar/Inativar',
+                                      onPressed: () => toggleActive(u),
+                                      icon: const Icon(Icons.swap_horiz)),
+                                  IconButton(
+                                      tooltip: 'Excluir',
+                                      onPressed: () => deleteUser(u['id']),
+                                      icon: const Icon(Icons.delete, color: Colors.red)),
                                 ]),
                               ),
                             );

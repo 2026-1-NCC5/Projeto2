@@ -20,6 +20,9 @@ class _ManageGoalsPageState extends State<ManageGoalsPage> {
   final _targetController = TextEditingController();
 
   bool _loading = false;
+  bool _showForm = false;
+  TeamLite? _filterTeam; // filtro da lista — null = todas
+
   List<GoalItem> _goals = [];
 
   @override
@@ -54,12 +57,15 @@ class _ManageGoalsPageState extends State<ManageGoalsPage> {
   Future<void> _saveGoal() async {
     final team = _selectedTeam;
     if (team == null) {
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Selecione uma equipe')));
+      ScaffoldMessenger.of(context)
+          .showSnackBar(const SnackBar(content: Text('Selecione uma equipe')));
       return;
     }
-    final target = double.tryParse(_targetController.text.trim().replaceAll(',', '.'));
+    final target =
+        double.tryParse(_targetController.text.trim().replaceAll(',', '.'));
     if (target == null || target <= 0) {
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Informe um valor válido para a meta')));
+      ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Informe um valor válido para a meta')));
       return;
     }
 
@@ -71,14 +77,18 @@ class _ManageGoalsPageState extends State<ManageGoalsPage> {
         targetKg: target,
       );
       _targetController.clear();
+      if (mounted) setState(() => _showForm = false);
       await _loadGoals();
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(backgroundColor: AppColors.green, content: Text('Meta salva com sucesso')),
+          const SnackBar(
+              backgroundColor: AppColors.green,
+              content: Text('Meta salva com sucesso')),
         );
       }
     } catch (e) {
-      if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Erro: $e')));
+      if (mounted)
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Erro: $e')));
     } finally {
       if (mounted) setState(() => _loading = false);
     }
@@ -91,14 +101,21 @@ class _ManageGoalsPageState extends State<ManageGoalsPage> {
       await _loadGoals();
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(backgroundColor: AppColors.green, content: Text('Meta removida')),
+          const SnackBar(
+              backgroundColor: AppColors.green, content: Text('Meta removida')),
         );
       }
     } catch (e) {
-      if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Erro: $e')));
+      if (mounted)
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Erro: $e')));
     } finally {
       if (mounted) setState(() => _loading = false);
     }
+  }
+
+  List<GoalItem> get _filteredGoals {
+    if (_filterTeam == null) return _goals;
+    return _goals.where((g) => g.teamId == _filterTeam!.id).toList();
   }
 
   @override
@@ -109,10 +126,14 @@ class _ManageGoalsPageState extends State<ManageGoalsPage> {
       _selectedTeam = p.teams.first;
     }
 
+    final displayed = _filteredGoals;
+
     return Scaffold(
       appBar: AppBar(
         title: const Text('Gerenciar Metas'),
         centerTitle: true,
+        backgroundColor: AppColors.primary,
+        foregroundColor: Colors.white,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
           onPressed: () => Navigator.pushReplacementNamed(context, p.homeRoute),
@@ -125,68 +146,156 @@ class _ManageGoalsPageState extends State<ManageGoalsPage> {
         padding: const EdgeInsets.all(16),
         child: Column(
           children: [
-            Card(
-              child: Padding(
-                padding: const EdgeInsets.all(16),
-                child: Column(
-                  children: [
-                    DropdownButtonFormField<TeamLite>(
-                      value: _selectedTeam,
-                      decoration: const InputDecoration(labelText: 'Equipe', border: OutlineInputBorder()),
-                      items: p.teams.map((t) => DropdownMenuItem(value: t, child: Text(t.name))).toList(),
-                      onChanged: (v) => setState(() => _selectedTeam = v),
-                    ),
-                    const SizedBox(height: 12),
-                    DropdownButtonFormField<FoodCategory>(
-                      value: _selectedCategory,
-                      decoration: const InputDecoration(labelText: 'Categoria', border: OutlineInputBorder()),
-                      items: FoodCategory.values
-                          .map((c) => DropdownMenuItem(value: c, child: Text(foodCategoryLabel(c))))
-                          .toList(),
-                      onChanged: (v) { if (v != null) setState(() => _selectedCategory = v); },
-                    ),
-                    const SizedBox(height: 12),
-                    TextField(
-                      controller: _targetController,
-                      keyboardType: const TextInputType.numberWithOptions(decimal: true),
-                      decoration: const InputDecoration(
-                        labelText: 'Meta (kg)',
-                        suffixText: 'kg',
-                        border: OutlineInputBorder(),
+            // ─── Botão / Formulário colapsável ───
+            AnimatedCrossFade(
+              duration: const Duration(milliseconds: 250),
+              crossFadeState:
+                  _showForm ? CrossFadeState.showSecond : CrossFadeState.showFirst,
+              firstChild: SizedBox(
+                width: double.infinity,
+                child: ElevatedButton.icon(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppColors.primary,
+                    padding: const EdgeInsets.symmetric(vertical: 14),
+                    shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(10)),
+                  ),
+                  icon: const Icon(Icons.flag_outlined, color: Colors.white),
+                  label: const Text('Criar nova meta',
+                      style: TextStyle(color: Colors.white, fontSize: 15)),
+                  onPressed: () => setState(() => _showForm = true),
+                ),
+              ),
+              secondChild: Card(
+                shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12)),
+                child: Padding(
+                  padding: const EdgeInsets.all(16),
+                  child: Column(
+                    children: [
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          const Text('Nova meta',
+                              style: TextStyle(
+                                  fontSize: 16, fontWeight: FontWeight.bold)),
+                          IconButton(
+                            icon: const Icon(Icons.close),
+                            onPressed: () => setState(() => _showForm = false),
+                            visualDensity: VisualDensity.compact,
+                          ),
+                        ],
                       ),
-                    ),
-                    const SizedBox(height: 12),
-                    SizedBox(
-                      width: double.infinity,
-                      height: 48,
-                      child: ElevatedButton(
-                        style: ElevatedButton.styleFrom(backgroundColor: AppColors.primary),
-                        onPressed: _loading ? null : _saveGoal,
-                        child: const Text('Salvar meta', style: TextStyle(color: Colors.white)),
+                      const SizedBox(height: 8),
+                      DropdownButtonFormField<TeamLite>(
+                        value: _selectedTeam,
+                        decoration: const InputDecoration(
+                            labelText: 'Equipe', border: OutlineInputBorder()),
+                        items: p.teams
+                            .map((t) =>
+                                DropdownMenuItem(value: t, child: Text(t.name)))
+                            .toList(),
+                        onChanged: (v) => setState(() => _selectedTeam = v),
                       ),
-                    ),
-                  ],
+                      const SizedBox(height: 12),
+                      DropdownButtonFormField<FoodCategory>(
+                        value: _selectedCategory,
+                        decoration: const InputDecoration(
+                            labelText: 'Categoria',
+                            border: OutlineInputBorder()),
+                        items: FoodCategory.values
+                            .map((c) => DropdownMenuItem(
+                                value: c, child: Text(foodCategoryLabel(c))))
+                            .toList(),
+                        onChanged: (v) {
+                          if (v != null) setState(() => _selectedCategory = v);
+                        },
+                      ),
+                      const SizedBox(height: 12),
+                      TextField(
+                        controller: _targetController,
+                        keyboardType: const TextInputType.numberWithOptions(
+                            decimal: true),
+                        decoration: const InputDecoration(
+                          labelText: 'Meta (kg)',
+                          suffixText: 'kg',
+                          border: OutlineInputBorder(),
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+                      SizedBox(
+                        width: double.infinity,
+                        height: 46,
+                        child: ElevatedButton(
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: AppColors.primary,
+                            shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(8)),
+                          ),
+                          onPressed: _loading ? null : _saveGoal,
+                          child: const Text('Salvar meta',
+                              style: TextStyle(color: Colors.white)),
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
               ),
             ),
-            const SizedBox(height: 16),
+            const SizedBox(height: 12),
+
+            // ─── Filtro da lista por equipe ───
+            Card(
+              shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(10)),
+              child: Padding(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+                child: DropdownButtonFormField<TeamLite?>(
+                  value: _filterTeam,
+                  decoration: const InputDecoration(
+                    labelText: 'Filtrar por equipe',
+                    border: InputBorder.none,
+                    prefixIcon: Icon(Icons.filter_list),
+                    isDense: true,
+                  ),
+                  items: [
+                    const DropdownMenuItem(
+                        value: null, child: Text('Todas as equipes')),
+                    ...p.teams.map((t) =>
+                        DropdownMenuItem(value: t, child: Text(t.name))),
+                  ],
+                  onChanged: (v) => setState(() => _filterTeam = v),
+                ),
+              ),
+            ),
+            const SizedBox(height: 8),
+
+            // ─── Lista de metas ───
             Expanded(
               child: _loading
                   ? const Center(child: CircularProgressIndicator())
-                  : _goals.isEmpty
+                  : displayed.isEmpty
                       ? const Center(child: Text('Nenhuma meta cadastrada'))
                       : ListView.separated(
-                          itemCount: _goals.length,
-                          separatorBuilder: (_, __) => const SizedBox(height: 8),
+                          itemCount: displayed.length,
+                          separatorBuilder: (_, __) =>
+                              const SizedBox(height: 8),
                           itemBuilder: (context, i) {
-                            final g = _goals[i];
+                            final g = displayed[i];
                             return Card(
+                              shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(10)),
                               child: ListTile(
-                                leading: Icon(Icons.flag, color: AppColors.primary),
-                                title: Text('${g.teamName ?? "Equipe ${g.teamId}"} • ${foodCategoryLabel(g.category)}'),
-                                subtitle: Text('Meta: ${g.targetKg.toStringAsFixed(1)} kg'),
+                                leading: Icon(Icons.flag,
+                                    color: AppColors.primary),
+                                title: Text(
+                                    '${g.teamName ?? "Equipe ${g.teamId}"} • ${foodCategoryLabel(g.category)}'),
+                                subtitle: Text(
+                                    'Meta: ${g.targetKg.toStringAsFixed(1)} kg'),
                                 trailing: IconButton(
-                                  icon: const Icon(Icons.delete, color: Colors.red),
+                                  icon: const Icon(Icons.delete,
+                                      color: Colors.red),
                                   onPressed: () => _deleteGoal(g.id),
                                 ),
                               ),

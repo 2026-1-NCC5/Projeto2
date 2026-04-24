@@ -82,15 +82,20 @@ class _ManageTeamsPageState extends State<ManageTeamsPage> {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Administrar Equipes'),
+        title: const Text('Gerenciar Equipes'),
         centerTitle: true,
+        backgroundColor: AppColors.primary,
+        foregroundColor: Colors.white,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
-          onPressed: () => Navigator.pushReplacementNamed(
-            context,
-            appProvider.homeRoute,
-          ),
+          onPressed: () =>
+              Navigator.pushReplacementNamed(context, appProvider.homeRoute),
         ),
+        actions: [
+          IconButton(
+              icon: const Icon(Icons.refresh),
+              onPressed: loading ? null : loadTeams),
+        ],
       ),
       body: loading
           ? const Center(child: CircularProgressIndicator())
@@ -119,7 +124,8 @@ class _ManageTeamsPageState extends State<ManageTeamsPage> {
                                 backgroundColor: AppColors.primary,
                               ),
                               onPressed: createTeam,
-                              child: const Text('Criar equipe'),
+                              child: const Text('Criar equipe',
+                                  style: TextStyle(color: Colors.white)),
                             ),
                           ),
                         ],
