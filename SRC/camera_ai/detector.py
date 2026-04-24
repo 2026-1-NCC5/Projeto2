@@ -24,12 +24,33 @@ SERVER_URL = os.getenv("SERVER_URL", "http://3.80.36.248:8000")
 CAMERA_API_KEY = os.getenv("CAMERA_API_KEY", "camera-secret-key")
 TEAM_ID = int(os.getenv("TEAM_ID", "1"))
 
+# Normaliza os nomes do modelo para as categorias aceitas pelo servidor
+CATEGORY_MAP = {
+    "arroz": "arroz",
+    "pacote de arroz": "arroz",
+    "feijao": "feijao",
+    "feijão": "feijao",
+    "pacote de feijao": "feijao",
+    "pacote de feijão": "feijao",
+    "macarrao": "macarrao",
+    "macarrão": "macarrao",
+    "pacote de macarrao": "macarrao",
+    "pacote de macarrão": "macarrao",
+    "acucar": "acucar",
+    "açúcar": "acucar",
+    "pacote de acucar": "acucar",
+    "pacote de açúcar": "acucar",
+    "cafe": "outros",
+    "café": "outros",
+    "pacote de cafe": "outros",
+    "pacote de café": "outros",
+}
+
 PRODUCTS = {
     "arroz":    {"peso_kg": 5.0},
     "feijao":   {"peso_kg": 1.0},
     "macarrao": {"peso_kg": 0.5},
     "acucar":   {"peso_kg": 1.0},
-    "cafe":     {"peso_kg": 0.5},
     "outros":   {"peso_kg": 1.0},
 }
 
@@ -115,7 +136,8 @@ while True:
 
     if results[0].boxes is not None and len(results[0].boxes) > 0:
         best = max(results[0].boxes, key=lambda b: float(b.conf[0].item()))
-        current_label = model.names[int(best.cls[0].item())]
+        raw_label = model.names[int(best.cls[0].item())]
+        current_label = CATEGORY_MAP.get(raw_label.lower(), "outros")
         current_conf = float(best.conf[0].item())
 
         if stable_label == current_label:
@@ -144,7 +166,7 @@ while True:
                         f"{current_conf:.4f}", f"{peso:.2f}", evidence_path, "pendente",
                     ])
 
-                print(f"[→] Detectado: {current_label} | {peso:.1f}kg | conf={current_conf:.0%} — enviando...")
+                print(f"[→] Detectado: {raw_label} → {current_label} | {peso:.1f}kg | conf={current_conf:.0%} — enviando...")
 
                 # thread SEM daemon para garantir conclusão ao fechar
                 t = threading.Thread(

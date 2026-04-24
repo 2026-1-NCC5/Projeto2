@@ -1,0 +1,330 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Camera AI — Lideranças Empáticas</title>
+  <style>
+    :root { --primary: #FF6B00; --primary-light: #fff3e8; --green: #2E7D32; --red: #c62828; --gray: #f5f5f5; --border: #e0e0e0; }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'Segoe UI', sans-serif; background: #f0f0f0; color: #222; }
+    header {
+      background: var(--primary); color: #fff; padding: 14px 24px;
+      display: flex; align-items: center; justify-content: space-between;
+      box-shadow: 0 2px 8px rgba(0,0,0,.2);
+    }
+    .header-left { display: flex; align-items: center; gap: 12px; }
+    header h1 { font-size: 18px; font-weight: 700; }
+    header .sub { font-size: 12px; opacity: .8; margin-top: 2px; }
+    .logout-btn {
+      background: rgba(255,255,255,.15); border: 1px solid rgba(255,255,255,.4);
+      color: #fff; border-radius: 8px; padding: 7px 14px;
+      font-size: 13px; font-weight: 600; cursor: pointer;
+    }
+    .logout-btn:hover { background: rgba(255,255,255,.25); }
+    main { max-width: 1100px; margin: 24px auto; padding: 0 16px; display: grid; gap: 20px; }
+    .card { background: #fff; border-radius: 14px; padding: 20px 24px; box-shadow: 0 1px 4px rgba(0,0,0,.08); }
+    .card h2 { font-size: 15px; font-weight: 700; color: var(--primary); margin-bottom: 14px; display: flex; align-items: center; gap: 8px; }
+    .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px; }
+    .stat-box { background: var(--primary-light); border-radius: 10px; padding: 14px 16px; }
+    .stat-box .val { font-size: 26px; font-weight: 800; color: var(--primary); }
+    .stat-box .lbl { font-size: 12px; color: #888; margin-top: 2px; }
+    .row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    label { font-size: 13px; font-weight: 600; color: #555; display: block; margin-bottom: 4px; }
+    input, select {
+      width: 100%; border: 1.5px solid var(--border); border-radius: 8px;
+      padding: 9px 12px; font-size: 14px; outline: none;
+    }
+    input:focus, select:focus { border-color: var(--primary); }
+    .btn-row { display: flex; gap: 10px; margin-top: 14px; flex-wrap: wrap; }
+    button { background: var(--primary); color: #fff; border: none; border-radius: 8px; padding: 10px 20px; font-size: 14px; font-weight: 600; cursor: pointer; }
+    button:hover { opacity: .88; }
+    button:disabled { opacity: .5; cursor: default; }
+    button.secondary { background: #fff; color: var(--primary); border: 2px solid var(--primary); }
+    .msg { border-radius: 8px; padding: 10px 14px; font-size: 13px; margin-top: 10px; display: none; }
+    .msg.ok { background: #e8f5e9; color: var(--green); display: block; }
+    .msg.err { background: #ffebee; color: var(--red); display: block; }
+    .filters { display: flex; gap: 12px; margin-bottom: 12px; flex-wrap: wrap; }
+    .filters select { width: auto; flex: 1; min-width: 160px; }
+    table { width: 100%; border-collapse: collapse; font-size: 13px; }
+    th { background: var(--gray); text-align: left; padding: 10px 12px; font-weight: 600; color: #555; }
+    td { padding: 9px 12px; border-top: 1px solid var(--border); }
+    tr:hover td { background: var(--primary-light); }
+    .badge { display: inline-block; padding: 3px 10px; border-radius: 20px; font-size: 11px; font-weight: 700; background: var(--primary-light); color: var(--primary); }
+    .conf-bar { height: 6px; border-radius: 3px; background: #eee; margin-top: 4px; }
+    .conf-bar span { display: block; height: 100%; border-radius: 3px; background: var(--primary); }
+    .empty { text-align: center; color: #aaa; padding: 32px; }
+    @media (max-width: 600px) { .row { grid-template-columns: 1fr; } .filters { flex-direction: column; } }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="header-left">
+      <span style="font-size:24px">📷</span>
+      <div>
+        <h1>Camera AI</h1>
+        <div class="sub" id="header-sub">Carregando...</div>
+      </div>
+    </div>
+    <button class="logout-btn" onclick="doLogout()">Sair</button>
+  </header>
+
+  <main>
+    <!-- Resumo do time selecionado -->
+    <div class="card">
+      <h2>
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 21V9"/></svg>
+        Resumo — <span id="resumo-team-label" style="font-weight:400;margin-left:4px">equipe selecionada</span>
+      </h2>
+      <div class="stats-grid">
+        <div class="stat-box"><div class="val" id="stat-count">—</div><div class="lbl">Detecções</div></div>
+        <div class="stat-box"><div class="val" id="stat-kg">—</div><div class="lbl">Total kg</div></div>
+        <div class="stat-box"><div class="val" id="stat-conf">—</div><div class="lbl">Confiança média</div></div>
+        <div class="stat-box"><div class="val" id="stat-team">—</div><div class="lbl">Equipe</div></div>
+      </div>
+    </div>
+
+    <!-- Câmera -->
+    <div class="card">
+      <h2>
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 7l-7 5 7 5V7z"/><rect x="1" y="5" width="15" height="14" rx="2"/></svg>
+        Controle da Câmera
+      </h2>
+      <div style="display:flex; align-items:center; gap:12px; flex-wrap:wrap; margin-bottom:12px">
+        <div id="cam-dot" style="width:12px;height:12px;border-radius:50%;background:#ccc;transition:background .3s;flex-shrink:0"></div>
+        <span id="cam-text" style="font-size:14px;color:#666;">Verificando...</span>
+      </div>
+      <div class="btn-row">
+        <button id="cam-start-btn" onclick="startCamera()">Iniciar Câmera</button>
+        <button id="cam-finish-btn" onclick="finishSession()" style="background:#2E7D32;display:none">✓ Finalizar Sessão</button>
+      </div>
+      <div class="msg" id="cam-msg"></div>
+    </div>
+
+    <!-- Configuração -->
+    <div class="card">
+      <h2>
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.07 4.93A10 10 0 0 0 4.93 19.07M4.93 4.93A10 10 0 0 0 19.07 19.07"/></svg>
+        Configuração
+      </h2>
+      <form id="config-form">
+        <div class="row">
+          <div>
+            <label>URL do Servidor</label>
+            <input type="text" id="cfg-server" placeholder="http://3.80.36.248:8000"/>
+          </div>
+          <div>
+            <label>Equipe</label>
+            <select id="cfg-team">
+              <option value="">Carregando...</option>
+            </select>
+          </div>
+        </div>
+        <div class="btn-row">
+          <button type="submit">Salvar</button>
+          <button type="button" class="secondary" onclick="testConnection()">Testar conexão</button>
+        </div>
+        <div class="msg" id="cfg-msg"></div>
+      </form>
+    </div>
+
+    <!-- Leituras -->
+    <div class="card">
+      <h2>
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+        Últimas Detecções
+      </h2>
+      <div class="filters">
+        <select id="filter-team" onchange="applyFilters()">
+          <option value="">Todas as equipes</option>
+        </select>
+        <select id="filter-cat" onchange="applyFilters()">
+          <option value="">Todas as categorias</option>
+          <option value="arroz">Arroz</option>
+          <option value="feijao">Feijão</option>
+          <option value="macarrao">Macarrão</option>
+          <option value="acucar">Açúcar</option>
+          <option value="outros">Outros</option>
+        </select>
+        <button onclick="loadReadings()" class="secondary" style="margin-top:0">↻ Atualizar</button>
+      </div>
+      <div id="readings-container"><div class="empty">Carregando...</div></div>
+    </div>
+  </main>
+
+  <script>
+    let _allReadings = [];
+    let _configTeamId = null;
+    let _cameraRunning = false;
+    const CAT = { arroz:'Arroz', feijao:'Feijão', macarrao:'Macarrão', acucar:'Açúcar', cafe:'Café', outros:'Outros' };
+
+    // ── Câmera ────────────────────────────────────────────────────────────────
+    async function checkCameraStatus() {
+      try {
+        const data = await fetch('/camera/status').then(r => r.json());
+        _cameraRunning = data.running;
+        document.getElementById('cam-dot').style.background = _cameraRunning ? '#4caf50' : '#ccc';
+        document.getElementById('cam-text').textContent = _cameraRunning ? 'Câmera ativa — detectando...' : 'Câmera inativa';
+        document.getElementById('cam-start-btn').style.display = _cameraRunning ? 'none' : '';
+        document.getElementById('cam-finish-btn').style.display = _cameraRunning ? '' : 'none';
+      } catch {}
+    }
+
+    async function startCamera() {
+      const msg = document.getElementById('cam-msg');
+      const data = await fetch('/camera/start', { method: 'POST' }).then(r => r.json());
+      msg.className = data.ok ? 'msg ok' : 'msg err';
+      msg.textContent = data.detail;
+      setTimeout(() => { msg.className = 'msg'; }, 4000);
+      await checkCameraStatus();
+    }
+
+    async function finishSession() {
+      const btn = document.getElementById('cam-finish-btn');
+      const msg = document.getElementById('cam-msg');
+      btn.disabled = true; btn.textContent = '⏳ Encerrando...';
+      msg.className = 'msg ok'; msg.textContent = 'Aguardando envio dos dados...';
+      await fetch('/camera/finish', { method: 'POST' });
+      msg.textContent = 'Sessão finalizada! Atualizando...';
+      await checkCameraStatus();
+      await loadReadings();
+      msg.textContent = '✓ Dados atualizados.';
+      setTimeout(() => { msg.className = 'msg'; btn.disabled = false; btn.textContent = '✓ Finalizar Sessão'; }, 4000);
+    }
+
+    // ── Config ────────────────────────────────────────────────────────────────
+    async function loadTeams(savedId) {
+      const sel = document.getElementById('cfg-team');
+      try {
+        const teams = await fetch('/teams').then(r => r.json());
+        sel.innerHTML = teams.length === 0
+          ? '<option value="">Nenhuma equipe</option>'
+          : teams.map(t => `<option value="${t.id}" ${t.id == savedId ? 'selected' : ''}>${t.name}</option>`).join('');
+      } catch {
+        sel.innerHTML = '<option value="">Erro ao carregar</option>';
+      }
+    }
+
+    async function loadConfig() {
+      const cfg = await fetch('/config').then(r => r.json());
+      document.getElementById('cfg-server').value = cfg.server_url || '';
+      _configTeamId = cfg.team_id;
+      await loadTeams(cfg.team_id);
+      const sel = document.getElementById('cfg-team');
+      const teamName = sel.options[sel.selectedIndex]?.text || '—';
+      document.getElementById('header-sub').textContent = 'Equipe: ' + teamName + ' · ' + (cfg.admin_email || '');
+      document.getElementById('resumo-team-label').textContent = teamName;
+      document.getElementById('stat-team').textContent = teamName;
+      applyFilters();
+    }
+
+    document.getElementById('config-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const sel = document.getElementById('cfg-team');
+      _configTeamId = parseInt(sel.value);
+      const teamName = sel.options[sel.selectedIndex]?.text || '—';
+      await fetch('/config', {
+        method: 'POST', headers: {'Content-Type':'application/json'},
+        body: JSON.stringify({ server_url: document.getElementById('cfg-server').value.trim(), team_id: _configTeamId }),
+      });
+      const msg = document.getElementById('cfg-msg');
+      msg.className = 'msg ok'; msg.textContent = 'Configuração salva!';
+      document.getElementById('resumo-team-label').textContent = teamName;
+      document.getElementById('stat-team').textContent = teamName;
+      applyFilters();
+      setTimeout(() => { msg.className = 'msg'; }, 3000);
+    });
+
+    async function testConnection() {
+      const msg = document.getElementById('cfg-msg');
+      msg.className = 'msg'; msg.textContent = 'Testando...'; msg.style.display = 'block';
+      const data = await fetch('/test-connection').then(r => r.json());
+      msg.className = data.ok ? 'msg ok' : 'msg err';
+      msg.textContent = data.ok ? '✓ Servidor acessível: ' + data.detail : '✗ Falha: ' + data.detail;
+      setTimeout(() => { msg.className = 'msg'; }, 5000);
+    }
+
+    // ── Leituras ──────────────────────────────────────────────────────────────
+    async function loadReadings() {
+      const r = await fetch('/readings');
+      if (r.status === 401) { window.location.href = '/login'; return; }
+      if (!r.ok) {
+        document.getElementById('readings-container').innerHTML = '<div class="empty">Sem leituras disponíveis.</div>';
+        return;
+      }
+      _allReadings = await r.json();
+      populateTeamFilter();
+      applyFilters();
+    }
+
+    function populateTeamFilter() {
+      const sel = document.getElementById('filter-team');
+      const current = sel.value;
+      const teams = [...new Map(_allReadings.map(r => [r.team_id, r.team_name])).entries()];
+      sel.innerHTML = '<option value="">Todas as equipes</option>' +
+        teams.map(([id, name]) => `<option value="${id}" ${id == current ? 'selected' : ''}>${name || id}</option>`).join('');
+    }
+
+    function applyFilters() {
+      const teamFilter = document.getElementById('filter-team').value;
+      const catFilter = document.getElementById('filter-cat').value;
+
+      // Resumo: só a equipe configurada
+      const statsData = _configTeamId
+        ? _allReadings.filter(r => r.team_id == _configTeamId)
+        : _allReadings;
+      updateStats(statsData);
+
+      // Tabela: filtros selecionados
+      const tableData = _allReadings.filter(r => {
+        const okTeam = !teamFilter || r.team_id == parseInt(teamFilter);
+        const okCat = !catFilter || r.category === catFilter;
+        return okTeam && okCat;
+      });
+      renderTable(tableData);
+    }
+
+    function updateStats(data) {
+      document.getElementById('stat-count').textContent = data.length || '0';
+      if (data.length === 0) {
+        document.getElementById('stat-kg').textContent = '0 kg';
+        document.getElementById('stat-conf').textContent = '—';
+        return;
+      }
+      document.getElementById('stat-kg').textContent = data.reduce((s, r) => s + r.kg_amount, 0).toFixed(1) + ' kg';
+      document.getElementById('stat-conf').textContent = (data.reduce((s, r) => s + r.confidence, 0) / data.length * 100).toFixed(0) + '%';
+    }
+
+    function renderTable(data) {
+      const container = document.getElementById('readings-container');
+      if (data.length === 0) { container.innerHTML = '<div class="empty">Nenhuma detecção encontrada.</div>'; return; }
+      let html = '<table><thead><tr><th>Data/Hora</th><th>Equipe</th><th>Categoria</th><th>Kg</th><th>Confiança</th></tr></thead><tbody>';
+      for (const r of data) {
+        const pct = Math.round(r.confidence * 100);
+        html += `<tr>
+          <td>${new Date(r.created_at).toLocaleString('pt-BR')}</td>
+          <td>${r.team_name || '—'}</td>
+          <td><span class="badge">${CAT[r.category] || r.category}</span></td>
+          <td>${r.kg_amount.toFixed(2)} kg</td>
+          <td>${pct}%<div class="conf-bar"><span style="width:${pct}%"></span></div></td>
+        </tr>`;
+      }
+      html += '</tbody></table>';
+      container.innerHTML = html;
+    }
+
+    // ── Logout ────────────────────────────────────────────────────────────────
+    async function doLogout() {
+      await fetch('/logout', { method: 'POST' });
+      window.location.href = '/login';
+    }
+
+    // ── Init ──────────────────────────────────────────────────────────────────
+    loadConfig();
+    loadReadings();
+    checkCameraStatus();
+    setInterval(loadReadings, 15000);
+    setInterval(checkCameraStatus, 5000);
+  </script>
+</body>
+</html>
