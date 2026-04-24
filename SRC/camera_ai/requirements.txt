@@ -1,7 +1,16 @@
+# Runtime — detecção e API web
 ultralytics
 opencv-python
-matplotlib
-notebook
-jupyter
+requests
+fastapi
+uvicorn[standard]
+
+# Treinamento
 numpy
 pandas
+matplotlib
+tqdm
+
+# Ferramentas opcionais (notebooks)
+notebook
+jupyter
