@@ -55,6 +55,18 @@ app.layout = html.Div([
 
 
 @callback(
+    Output("mobile-topbar", "style"),
+    Input("url", "pathname"),
+)
+def toggle_mobile_topbar(pathname):
+    # Topbar só aparece nas páginas do dashboard (que têm sidebar)
+    # Login e página pública têm seus próprios headers
+    if pathname and pathname.startswith("/dashboard"):
+        return {"display": "flex"}
+    return {"display": "none"}
+
+
+@callback(
     Output("sidebar-open", "data"),
     Input("mobile-menu-btn", "n_clicks"),
     Input("sidebar-overlay", "n_clicks"),

@@ -15,8 +15,7 @@ PLOTLY_CONFIG = {
     "responsive": True,
     "displayModeBar": "hover",
     "modeBarButtonsToRemove": [
-        "zoom2d", "pan2d", "select2d", "lasso2d",
-        "zoomIn2d", "zoomOut2d", "autoScale2d", "resetScale2d",
+        "select2d", "lasso2d",
         "hoverClosestCartesian", "hoverCompareCartesian", "toggleSpikelines",
     ],
     "displaylogo": False,
@@ -60,19 +59,14 @@ def build_sidebar(pathname: str, is_open: bool = False) -> html.Div:
         html.Div([
             html.Img(src="/assets/logo.png",
                      style={"height": "42px", "marginBottom": "8px", "display": "block"}),
-            html.Div([
-                html.Div([
-                    html.H1("Lideranças Empáticas"),
-                    html.Div("Painel Admin", className="sub"),
-                ]),
-                dcc.Link("🚪 Sair", href="/logout",
-                         style={"color": "rgba(255,255,255,.6)", "textDecoration": "none",
-                                "fontSize": "12px", "whiteSpace": "nowrap",
-                                "alignSelf": "flex-start", "marginTop": "4px"}),
-            ], style={"display": "flex", "justifyContent": "space-between",
-                      "alignItems": "flex-start", "width": "100%"}),
+            html.H1("Lideranças Empáticas"),
+            html.Div("Painel Admin", className="sub"),
         ], className="sidebar-brand"),
         html.Div(items, className="sidebar-nav"),
+        html.Div([
+            dcc.Link("🚪 Sair", href="/logout", className="nav-item",
+                     style={"color": "rgba(255,255,255,.7)", "textDecoration": "none"}),
+        ], className="sidebar-footer"),
     ], className=class_name, id="sidebar")
 
 

@@ -352,7 +352,6 @@ tr:hover td { background: var(--primary-light); }
 
 /* ── Responsivo mobile ────────────────────────────────────────── */
 @media (max-width: 768px) {
-  .mobile-topbar { display: flex; }
   .app-wrapper { display: block; }
 
   /* Sidebar: footer sempre visível, nav com scroll interno */
@@ -371,10 +370,10 @@ tr:hover td { background: var(--primary-light); }
   .sidebar.open .sidebar-nav {
     flex: 1;
     overflow-y: auto;
-    min-height: 0; /* permite o scroll funcionar dentro do flex */
+    min-height: 0;
   }
   .sidebar.open .sidebar-footer {
-    flex-shrink: 0; /* footer nunca some */
+    flex-shrink: 0;
   }
 
   .main-content { padding: 12px; width: 100%; }
@@ -382,22 +381,27 @@ tr:hover td { background: var(--primary-light); }
   .card { padding: 14px 16px; }
   .public-header { position: relative; }
 
-  /* Filtros: coluna, itens ocupam largura total e alinhados à esquerda */
+  /* Login fixo, sem scroll na página */
+  .login-wrapper {
+    margin: -12px;
+    height: 100vh;
+    overflow: hidden;
+  }
+
+  /* Filtros: coluna, itens com largura total */
   .filters-row {
     flex-direction: column;
     align-items: stretch;
     gap: 8px;
   }
-  .filters-row > div {
-    width: 100%;
-  }
+  .filters-row > div { width: 100%; }
   .filters-row > div > .Select,
   .filters-row > div > div {
     min-width: unset !important;
     width: 100% !important;
   }
 
-  /* Tabelas: scroll horizontal para não vazar do card */
+  /* Tabelas com scroll horizontal */
   #ov-comparison-table,
   #app-ranking-table,
   #goals-table {
@@ -406,9 +410,7 @@ tr:hover td { background: var(--primary-light); }
   }
   #ov-comparison-table table,
   #app-ranking-table table,
-  #goals-table table {
-    min-width: 460px;
-  }
+  #goals-table table { min-width: 460px; }
 }
 
 @media (max-width: 480px) {
@@ -456,6 +458,34 @@ tr:hover td { background: var(--primary-light); }
   box-shadow: 0 2px 8px rgba(0,0,0,.1) !important;
   border: 1px solid var(--border) !important;
   padding: 2px 4px !important;
+  align-items: center !important;
+}
+
+/* Hambúrguer: ícone de entrada do modebar */
+.modebar-hamburger {
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: #bbb;
+  padding: 4px 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 6px;
+  transition: color .15s, background .15s;
+  flex-shrink: 0;
+}
+
+.modebar-hamburger:hover {
+  color: var(--primary);
+  background: var(--primary-light);
+}
+
+/* Separador entre hambúrguer e os botões */
+.modebar.mb-open .modebar-group:first-of-type {
+  margin-left: 4px;
+  padding-left: 4px;
+  border-left: 1px solid var(--border);
 }
 
 .modebar-btn path {
@@ -463,18 +493,11 @@ tr:hover td { background: var(--primary-light); }
   transition: fill .15s;
 }
 
-.modebar-btn:hover path {
-  fill: var(--primary) !important;
-}
-
-.modebar-btn.active path {
-  fill: var(--primary) !important;
-}
+.modebar-btn:hover path { fill: var(--primary) !important; }
+.modebar-btn.active path { fill: var(--primary) !important; }
 
 .modebar-group {
   border-right: 1px solid var(--border) !important;
 }
 
-.modebar-group:last-child {
-  border-right: none !important;
-}
+.modebar-group:last-child { border-right: none !important; }
