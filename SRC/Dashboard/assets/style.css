@@ -417,6 +417,38 @@ tr:hover td { background: var(--primary-light); }
   .kpi-box .val { font-size: 20px; }
 }
 
+/* ── Logout spinner ──────────────────────────────────────────── */
+.logout-spinner {
+  width: 36px;
+  height: 36px;
+  border: 3px solid #e0e0e0;
+  border-top-color: var(--primary);
+  border-radius: 50%;
+  animation: spin .7s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+/* ── Plotly touch mobile ─────────────────────────────────────── */
+@media (max-width: 768px) {
+  /* Esconde a toolbar nos gráficos no mobile */
+  .modebar-container {
+    display: none !important;
+  }
+
+  /* Impede o gráfico de capturar o scroll da página */
+  .js-plotly-plot {
+    touch-action: pan-y !important;
+  }
+
+  .js-plotly-plot .nsewdrag,
+  .js-plotly-plot .drag {
+    pointer-events: none !important;
+  }
+}
+
 /* ── Plotly modebar ───────────────────────────────────────────── */
 .modebar {
   background: #fff !important;
