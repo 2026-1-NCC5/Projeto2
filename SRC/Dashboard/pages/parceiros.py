@@ -66,7 +66,7 @@ layout = html.Div([
         ], className="card"),
 
     ], style={"maxWidth": "1100px", "margin": "24px auto", "padding": "0 16px"}),
-], style={"margin": "-24px"})
+], className="public-page-wrapper")
 
 
 @callback(

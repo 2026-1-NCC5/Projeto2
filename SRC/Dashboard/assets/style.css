@@ -218,6 +218,24 @@ body {
 .status-warn { color: var(--yellow); font-weight: 700; }
 .status-bad  { color: var(--red);    font-weight: 700; }
 
+/* ── Página pública (parceiros) ───────────────────────────────── */
+.public-page-wrapper {
+  margin: -24px;
+}
+
+@media (max-width: 768px) {
+  .public-page-wrapper {
+    margin: -12px;
+  }
+
+  .public-header {
+    padding: 12px 14px;
+  }
+
+  .public-header h1 { font-size: 15px; }
+  .public-header .sub { font-size: 11px; }
+}
+
 /* ── Public header ────────────────────────────────────────── */
 .public-header {
   background: var(--primary);
@@ -296,7 +314,7 @@ tr:hover td { background: var(--primary-light); }
 
 /* ── Mobile topbar ────────────────────────────────────────────── */
 .mobile-topbar {
-  display: none;
+  display: none; /* escondido por padrão em todas as telas */
   background: var(--primary);
   padding: 12px 16px;
   align-items: center;
@@ -305,6 +323,13 @@ tr:hover td { background: var(--primary-light); }
   top: 0;
   z-index: 150;
   box-shadow: 0 2px 8px rgba(0,0,0,.2);
+}
+
+/* Só aparece em mobile E em páginas de dashboard */
+@media (max-width: 768px) {
+  .mobile-topbar.visible {
+    display: flex;
+  }
 }
 
 .mobile-topbar-title {
@@ -461,19 +486,19 @@ tr:hover td { background: var(--primary-light); }
   align-items: center !important;
 }
 
-/* Hambúrguer: ícone de entrada do modebar */
+/* Hambúrguer: seta que abre/fecha as opções do gráfico */
 .modebar-hamburger {
   background: none;
   border: none;
   cursor: pointer;
-  color: #bbb;
-  padding: 4px 6px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  color: #999;
+  font-size: 14px;
+  line-height: 1;
+  padding: 3px 6px;
   border-radius: 6px;
   transition: color .15s, background .15s;
   flex-shrink: 0;
+  font-family: inherit;
 }
 
 .modebar-hamburger:hover {
@@ -481,7 +506,7 @@ tr:hover td { background: var(--primary-light); }
   background: var(--primary-light);
 }
 
-/* Separador entre hambúrguer e os botões */
+/* Separador entre seta e os botões */
 .modebar.mb-open .modebar-group:first-of-type {
   margin-left: 4px;
   padding-left: 4px;
