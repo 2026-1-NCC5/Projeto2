@@ -1,7 +1,7 @@
 {
   "server_url": "http://3.80.36.248:8000",
   "camera_api_key": "camera-secret-key",
-  "team_id": 2,
-  "admin_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiI3IiwiZW1haWwiOiJhZG1pbkBhZG1pbi5jb20iLCJyb2xlIjoiYWRtaW4iLCJuYW1lIjoiQWRtaW4iLCJ0ZWFtX2lkIjpudWxsLCJleHAiOjE3NzcxNDY3Mzd9.9KNDqWc13WWfNOcqgHHX1m6adwbnkCGS7l8-iuTsuz4",
+  "team_id": 1,
+  "admin_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiI3IiwiZW1haWwiOiJhZG1pbkBhZG1pbi5jb20iLCJyb2xlIjoiYWRtaW4iLCJuYW1lIjoiQWRtaW4iLCJ0ZWFtX2lkIjpudWxsLCJleHAiOjE3NzcxNzEwNDN9.vdceweb5p6VnA30KZne9SAa9GUQA6I4FrayBtADzqIw",
   "admin_email": "admin@admin.com"
 }
