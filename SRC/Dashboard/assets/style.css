@@ -38,19 +38,19 @@ body {
 .sidebar {
   width: var(--sidebar-w);
   background: var(--primary);
-  min-height: 100vh;
   display: flex;
   flex-direction: column;
   flex-shrink: 0;
   position: sticky;
   top: 0;
   height: 100vh;
-  overflow-y: auto;
+  overflow: hidden; /* o scroll fica no .sidebar-nav, não aqui */
 }
 
 .sidebar-brand {
   padding: 18px 16px 14px;
   border-bottom: 1px solid rgba(255,255,255,.2);
+  flex-shrink: 0;
 }
 
 .sidebar-brand h1 {
@@ -68,7 +68,18 @@ body {
 .sidebar-nav {
   padding: 12px 8px;
   flex: 1;
+  overflow-y: auto;
+  min-height: 0; /* obrigatório para scroll funcionar dentro de flex */
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255,255,255,.3) transparent;
 }
+
+.sidebar-nav::-webkit-scrollbar { width: 4px; }
+.sidebar-nav::-webkit-scrollbar-thumb {
+  background: rgba(255,255,255,.3);
+  border-radius: 4px;
+}
+.sidebar-nav::-webkit-scrollbar-track { background: transparent; }
 
 .nav-item {
   display: flex;
@@ -93,6 +104,7 @@ body {
 .sidebar-footer {
   padding: 12px 8px;
   border-top: 1px solid rgba(255,255,255,.2);
+  flex-shrink: 0; /* rodapé nunca some */
 }
 
 /* ── Header de página ─────────────────────────────────────── */
