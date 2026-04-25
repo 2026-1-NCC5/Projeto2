@@ -31,6 +31,9 @@ layout = html.Div([
                             style={"width": "100%", "marginTop": "8px"}),
                 html.Div(id="login-msg", style={"marginTop": "12px", "fontSize": "13px"}),
             ]),
+            dcc.Link("← Voltar para a página inicial", href="/",
+                     style={"display": "block", "textAlign": "center", "marginTop": "20px",
+                            "fontSize": "13px", "color": "#888", "textDecoration": "none"}),
         ], className="login-card"),
     ], className="login-wrapper"),
 ], style={"background": "#f0f0f0", "minHeight": "100vh"})

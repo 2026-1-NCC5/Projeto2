@@ -1,5 +1,5 @@
 import dash
-from dash import html, dcc, callback, Input, Output
+from dash import html, dcc, callback, Input, Output, State
 import plotly.express as px
 import pandas as pd
 from data import get_readings, get_readings_kpis, get_teams
@@ -59,13 +59,15 @@ def layout():
     Input("app-cat", "value"),
     Input("app-dates", "start_date"),
     Input("app-dates", "end_date"),
+    State("auth-store", "data"),
 )
-def update_app_data(team_id, category, from_date, to_date):
+def update_app_data(team_id, category, from_date, to_date, auth_data):
+    token = (auth_data or {}).get("token", "")
     tid = None if team_id == "all" else int(team_id)
     cat = None if category == "all" else category
-    kpis_data = get_readings_kpis(team_id=tid, category=cat,
+    kpis_data = get_readings_kpis(token, team_id=tid, category=cat,
                                    from_date=from_date, to_date=to_date)
-    df = get_readings(team_id=tid, category=cat, from_date=from_date, to_date=to_date)
+    df = get_readings(token, team_id=tid, category=cat, from_date=from_date, to_date=to_date)
 
     kpis = [
         kpi_box(f"{kpis_data['total_kg']:,.1f} kg", "Total kg registrado"),

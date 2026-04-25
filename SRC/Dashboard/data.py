@@ -1,44 +1,73 @@
+import os
+import requests
 import pandas as pd
-from sqlalchemy import text
-from db import get_engine
+from dotenv import load_dotenv
+
+load_dotenv()
+
+SERVER_URL = os.getenv("SERVER_URL", "http://localhost:8000")
+
+_CAMERA_COLS = ["id", "team_id", "team_name", "category", "confidence", "kg_amount", "price", "created_at"]
+_READING_COLS = ["id", "team_id", "team_name", "user_id", "user_name", "category", "kg_amount", "created_at"]
+_GOAL_COLS = ["id", "team_id", "team_name", "category", "target_kg"]
+_TEAM_COLS = ["id", "name"]
+_USER_COLS = ["id", "name", "email", "role", "team_id"]
 
 
-def _conn():
-    return get_engine().connect()
+def _get(path, token=None, params=None):
+    headers = {}
+    if token:
+        headers["Authorization"] = f"Bearer {token}"
+    try:
+        r = requests.get(f"{SERVER_URL}{path}", headers=headers, params=params, timeout=10)
+        r.raise_for_status()
+        return r.json()
+    except Exception:
+        return []
 
 
-# ── Câmera ────────────────────────────────────────────────────────────────────
-
-def get_camera_readings(team_id=None, category=None, from_date=None, to_date=None) -> pd.DataFrame:
-    q = """
-        SELECT cr.id, cr.team_id, t.name AS team_name, cr.category,
-               cr.confidence, cr.kg_amount, COALESCE(cr.price, 0.0) AS price,
-               cr.created_at
-        FROM camera_readings cr
-        JOIN teams t ON cr.team_id = t.id
-        WHERE 1=1
-    """
-    params = {}
-    if team_id:
-        q += " AND cr.team_id = :team_id"
-        params["team_id"] = team_id
-    if category:
-        q += " AND cr.category = :category"
-        params["category"] = category
-    if from_date:
-        q += " AND cr.created_at >= :from_date"
-        params["from_date"] = from_date
-    if to_date:
-        q += " AND cr.created_at <= :to_date"
-        params["to_date"] = to_date
-    q += " ORDER BY cr.created_at DESC"
-    with _conn() as conn:
-        return pd.read_sql(text(q), conn, params=params)
+def _to_df(data, cols):
+    if not data:
+        return pd.DataFrame(columns=cols)
+    return pd.DataFrame(data)
 
 
-def get_camera_kpis(team_id=None, category=None, from_date=None, to_date=None) -> dict:
-    df = get_camera_readings(team_id=team_id, category=category,
-                             from_date=from_date, to_date=to_date)
+# ── Pública (sem auth) ────────────────────────────────────────────────────────
+
+def get_public_camera_readings(category=None, from_date=None, to_date=None) -> pd.DataFrame:
+    params = {k: v for k, v in {"category": category, "from_date": from_date, "to_date": to_date}.items() if v}
+    data = _get("/api/public/camera-readings", params=params)
+    df = _to_df(data, _CAMERA_COLS)
+    if not df.empty and "price" in df.columns:
+        df["price"] = df["price"].fillna(0.0)
+    return df
+
+
+def get_public_camera_kpis(category=None, from_date=None, to_date=None) -> dict:
+    df = get_public_camera_readings(category=category, from_date=from_date, to_date=to_date)
+    if df.empty:
+        return {"total_kg": 0.0, "total_price": 0.0, "total_count": 0, "avg_confidence": 0.0}
+    return {
+        "total_kg": round(float(df["kg_amount"].sum()), 2),
+        "total_price": round(float(df["price"].sum()), 2),
+        "total_count": len(df),
+        "avg_confidence": round(float(df["confidence"].mean()) * 100, 1),
+    }
+
+
+# ── Câmera (admin) ────────────────────────────────────────────────────────────
+
+def get_camera_readings(token, team_id=None, category=None, from_date=None, to_date=None) -> pd.DataFrame:
+    params = {k: v for k, v in {"team_id": team_id, "category": category, "from_date": from_date, "to_date": to_date}.items() if v is not None}
+    data = _get("/api/camera-readings", token=token, params=params)
+    df = _to_df(data, _CAMERA_COLS)
+    if not df.empty and "price" in df.columns:
+        df["price"] = df["price"].fillna(0.0)
+    return df
+
+
+def get_camera_kpis(token, team_id=None, category=None, from_date=None, to_date=None) -> dict:
+    df = get_camera_readings(token, team_id=team_id, category=category, from_date=from_date, to_date=to_date)
     if df.empty:
         return {"total_kg": 0.0, "total_price": 0.0, "total_count": 0, "avg_confidence": 0.0}
     return {
@@ -51,37 +80,14 @@ def get_camera_kpis(team_id=None, category=None, from_date=None, to_date=None) -
 
 # ── App ───────────────────────────────────────────────────────────────────────
 
-def get_readings(team_id=None, category=None, from_date=None, to_date=None) -> pd.DataFrame:
-    q = """
-        SELECT r.id, r.team_id, t.name AS team_name,
-               r.user_id, u.name AS user_name,
-               r.category, r.kg_amount, r.created_at
-        FROM readings r
-        JOIN teams t ON r.team_id = t.id
-        LEFT JOIN users u ON r.user_id = u.id
-        WHERE 1=1
-    """
-    params = {}
-    if team_id:
-        q += " AND r.team_id = :team_id"
-        params["team_id"] = team_id
-    if category:
-        q += " AND r.category = :category"
-        params["category"] = category
-    if from_date:
-        q += " AND r.created_at >= :from_date"
-        params["from_date"] = from_date
-    if to_date:
-        q += " AND r.created_at <= :to_date"
-        params["to_date"] = to_date
-    q += " ORDER BY r.created_at DESC"
-    with _conn() as conn:
-        return pd.read_sql(text(q), conn, params=params)
+def get_readings(token, team_id=None, category=None, from_date=None, to_date=None) -> pd.DataFrame:
+    params = {k: v for k, v in {"team_id": team_id, "category": category, "from_date": from_date, "to_date": to_date}.items() if v is not None}
+    data = _get("/api/readings", token=token, params=params)
+    return _to_df(data, _READING_COLS)
 
 
-def get_readings_kpis(team_id=None, category=None, from_date=None, to_date=None) -> dict:
-    df = get_readings(team_id=team_id, category=category,
-                      from_date=from_date, to_date=to_date)
+def get_readings_kpis(token, team_id=None, category=None, from_date=None, to_date=None) -> dict:
+    df = get_readings(token, team_id=team_id, category=category, from_date=from_date, to_date=to_date)
     if df.empty:
         return {"total_kg": 0.0, "total_count": 0}
     return {
@@ -92,46 +98,37 @@ def get_readings_kpis(team_id=None, category=None, from_date=None, to_date=None)
 
 # ── Metas ─────────────────────────────────────────────────────────────────────
 
-def get_goals(team_id=None) -> pd.DataFrame:
-    q = """
-        SELECT g.id, g.team_id, t.name AS team_name,
-               g.category, g.target_kg
-        FROM goals g
-        JOIN teams t ON g.team_id = t.id
-        WHERE 1=1
-    """
+def get_goals(token, team_id=None) -> pd.DataFrame:
     params = {}
     if team_id:
-        q += " AND g.team_id = :team_id"
         params["team_id"] = team_id
-    q += " ORDER BY g.team_id, g.category"
-    with _conn() as conn:
-        return pd.read_sql(text(q), conn, params=params)
+    data = _get("/api/goals", token=token, params=params)
+    return _to_df(data, _GOAL_COLS)
 
 
 # ── Equipes / Usuários ────────────────────────────────────────────────────────
 
 def get_teams() -> pd.DataFrame:
-    with _conn() as conn:
-        return pd.read_sql(
-            text("SELECT id, name FROM teams WHERE active = true ORDER BY name"),
-            conn,
-        )
+    data = _get("/api/teams")
+    df = _to_df(data, _TEAM_COLS)
+    if not df.empty and "active" in df.columns:
+        df = df[df["active"] == True]
+    return df
 
 
-def get_users() -> pd.DataFrame:
-    with _conn() as conn:
-        return pd.read_sql(
-            text("SELECT id, name, email, role, team_id FROM users WHERE active = true"),
-            conn,
-        )
+def get_users(token) -> pd.DataFrame:
+    data = _get("/api/users", token=token)
+    df = _to_df(data, _USER_COLS)
+    if not df.empty and "active" in df.columns:
+        df = df[df["active"] == True]
+    return df
 
 
 # ── Comparação App vs Câmera ──────────────────────────────────────────────────
 
-def get_comparison(team_id=None, from_date=None, to_date=None) -> pd.DataFrame:
-    df_app = get_readings(team_id=team_id, from_date=from_date, to_date=to_date)
-    df_cam = get_camera_readings(team_id=team_id, from_date=from_date, to_date=to_date)
+def get_comparison(token, team_id=None, from_date=None, to_date=None) -> pd.DataFrame:
+    df_app = get_readings(token, team_id=team_id, from_date=from_date, to_date=to_date)
+    df_cam = get_camera_readings(token, team_id=team_id, from_date=from_date, to_date=to_date)
 
     categories = ["arroz", "feijao", "macarrao", "acucar", "outros"]
     rows = []

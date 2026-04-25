@@ -1,5 +1,5 @@
 import dash
-from dash import html, dcc, callback, Input, Output
+from dash import html, dcc, callback, Input, Output, State
 import plotly.graph_objects as go
 import pandas as pd
 from data import get_goals, get_readings, get_camera_readings, get_teams
@@ -34,12 +34,14 @@ def layout():
     Output("goals-progress", "figure"),
     Output("goals-table", "children"),
     Input("goals-team", "value"),
+    State("auth-store", "data"),
 )
-def update_goals(team_id):
+def update_goals(team_id, auth_data):
+    token = (auth_data or {}).get("token", "")
     tid = None if team_id == "all" else int(team_id)
-    goals = get_goals(team_id=tid)
-    df_app = get_readings(team_id=tid)
-    df_cam = get_camera_readings(team_id=tid)
+    goals = get_goals(token, team_id=tid)
+    df_app = get_readings(token, team_id=tid)
+    df_cam = get_camera_readings(token, team_id=tid)
 
     if goals.empty:
         fig = empty_figure("Nenhuma meta cadastrada")

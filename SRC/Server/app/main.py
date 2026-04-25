@@ -8,6 +8,7 @@ from app.routers.readings import router as readings_router
 from app.routers.users import router as users_router
 from app.routers.goals import router as goals_router
 from app.routers.camera_readings import router as camera_readings_router
+from app.routers.public import router as public_router
 
 app = FastAPI(title="Lideranças Empáticas API")
 
@@ -31,6 +32,7 @@ app.include_router(readings_router)
 app.include_router(users_router)
 app.include_router(goals_router)
 app.include_router(camera_readings_router)
+app.include_router(public_router)
 
 
 @app.get("/")

@@ -3,7 +3,7 @@ from dash import html, dcc, callback, Input, Output
 import plotly.express as px
 import plotly.graph_objects as go
 import pandas as pd
-from data import get_camera_readings, get_camera_kpis
+from data import get_public_camera_readings, get_public_camera_kpis
 from layout import CAT_LABELS, PLOTLY_COLORS, empty_figure
 
 dash.register_page(__name__, path="/", title="Resultados — Lideranças Empáticas")
@@ -74,7 +74,7 @@ layout = html.Div([
         ], className="card"),
 
     ], style={"maxWidth": "1100px", "margin": "24px auto", "padding": "0 16px"}),
-])
+], style={"margin": "-24px"})
 
 
 @callback(
@@ -88,8 +88,8 @@ layout = html.Div([
 )
 def update_public(category, from_date, to_date):
     cat = None if category == "all" else category
-    kpis = get_camera_kpis(category=cat, from_date=from_date, to_date=to_date)
-    df = get_camera_readings(category=cat, from_date=from_date, to_date=to_date)
+    kpis = get_public_camera_kpis(category=cat, from_date=from_date, to_date=to_date)
+    df = get_public_camera_readings(category=cat, from_date=from_date, to_date=to_date)
 
     kpi_boxes = [
         html.Div([html.Div(f"{kpis['total_kg']:,.1f} kg", className="val"),

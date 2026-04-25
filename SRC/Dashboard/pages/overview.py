@@ -45,12 +45,14 @@ def layout():
     Input("ov-team", "value"),
     Input("ov-dates", "start_date"),
     Input("ov-dates", "end_date"),
+    State("auth-store", "data"),
 )
-def update_overview(team_id, from_date, to_date):
+def update_overview(team_id, from_date, to_date, auth_data):
+    token = (auth_data or {}).get("token", "")
     tid = None if team_id == "all" else int(team_id)
-    cam_kpis = get_camera_kpis(team_id=tid, from_date=from_date, to_date=to_date)
-    app_kpis = get_readings_kpis(team_id=tid, from_date=from_date, to_date=to_date)
-    goals_df = get_goals(team_id=tid)
+    cam_kpis = get_camera_kpis(token, team_id=tid, from_date=from_date, to_date=to_date)
+    app_kpis = get_readings_kpis(token, team_id=tid, from_date=from_date, to_date=to_date)
+    goals_df = get_goals(token, team_id=tid)
 
     meta_pct = 0.0
     if not goals_df.empty:
@@ -65,7 +67,7 @@ def update_overview(team_id, from_date, to_date):
         kpi_box(f"{meta_pct:.0f}%", "Meta atingida"),
     ]
 
-    comp = get_comparison(team_id=tid, from_date=from_date, to_date=to_date)
+    comp = get_comparison(token, team_id=tid, from_date=from_date, to_date=to_date)
     comp["label"] = comp["category"].map(CAT_LABELS)
 
     fig = go.Figure()

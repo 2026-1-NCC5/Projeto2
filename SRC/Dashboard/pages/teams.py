@@ -1,5 +1,5 @@
 import dash
-from dash import html, dcc, callback, Input, Output
+from dash import html, dcc, callback, Input, Output, State
 import plotly.express as px
 import plotly.graph_objects as go
 import pandas as pd
@@ -38,15 +38,17 @@ layout = html.Div([
     Output("teams-comparison", "figure"),
     Output("teams-cards", "children"),
     Input("url", "pathname"),
+    State("auth-store", "data"),
 )
-def update_teams(pathname):
+def update_teams(pathname, auth_data):
     if not pathname or "teams" not in pathname:
         raise dash.exceptions.PreventUpdate
 
+    token = (auth_data or {}).get("token", "")
     teams = get_teams()
-    df_app = get_readings()
-    df_cam = get_camera_readings()
-    users = get_users()
+    df_app = get_readings(token)
+    df_cam = get_camera_readings(token)
+    users = get_users(token)
 
     kpis = [
         kpi_box(str(len(teams)), "Equipes ativas"),

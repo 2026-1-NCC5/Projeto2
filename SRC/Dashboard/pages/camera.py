@@ -1,5 +1,5 @@
 import dash
-from dash import html, dcc, callback, Input, Output
+from dash import html, dcc, callback, Input, Output, State
 import plotly.express as px
 import plotly.graph_objects as go
 import pandas as pd
@@ -60,14 +60,16 @@ def layout():
     Input("cam-cat", "value"),
     Input("cam-dates", "start_date"),
     Input("cam-dates", "end_date"),
+    State("auth-store", "data"),
 )
-def update_camera(team_id, category, from_date, to_date):
+def update_camera(team_id, category, from_date, to_date, auth_data):
+    token = (auth_data or {}).get("token", "")
     tid = None if team_id == "all" else int(team_id)
     cat = None if category == "all" else category
-    kpis_data = get_camera_kpis(team_id=tid, category=cat,
-                                  from_date=from_date, to_date=to_date)
-    df = get_camera_readings(team_id=tid, category=cat,
-                              from_date=from_date, to_date=to_date)
+    kpis_data = get_camera_kpis(token, team_id=tid, category=cat,
+                                 from_date=from_date, to_date=to_date)
+    df = get_camera_readings(token, team_id=tid, category=cat,
+                             from_date=from_date, to_date=to_date)
 
     kpis = [
         kpi_box(f"{kpis_data['total_kg']:,.1f} kg", "Total kg validado"),
