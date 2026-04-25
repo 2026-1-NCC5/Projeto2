@@ -1,14 +1,26 @@
 (function () {
-  function styleBtn(btn, open) {
-    btn.style.setProperty('color',       open ? '#FF6B00' : '#555', 'important');
-    btn.style.setProperty('background',  'none',                    'important');
-    btn.style.setProperty('border',      'none',                    'important');
-    btn.style.setProperty('font-size',   '14px',                    'important');
-    btn.style.setProperty('line-height', '1',                       'important');
-    btn.style.setProperty('padding',     '3px 8px',                 'important');
-    btn.style.setProperty('cursor',      'pointer',                 'important');
-    btn.style.setProperty('border-radius','6px',                    'important');
-    btn.style.setProperty('flex-shrink', '0',                       'important');
+  var ARROW_DOWN =
+    '<svg width="10" height="6" viewBox="0 0 10 6" xmlns="http://www.w3.org/2000/svg"' +
+    ' style="display:block;pointer-events:none">' +
+    '<path d="M0,0 L10,0 L5,6 Z" fill="#555"/>' +
+    '</svg>';
+
+  var ARROW_UP =
+    '<svg width="10" height="6" viewBox="0 0 10 6" xmlns="http://www.w3.org/2000/svg"' +
+    ' style="display:block;pointer-events:none">' +
+    '<path d="M0,6 L10,6 L5,0 Z" fill="#FF6B00"/>' +
+    '</svg>';
+
+  function styleBtn(btn) {
+    btn.style.setProperty('background',     'none',    'important');
+    btn.style.setProperty('border',         'none',    'important');
+    btn.style.setProperty('padding',        '4px 8px', 'important');
+    btn.style.setProperty('cursor',         'pointer', 'important');
+    btn.style.setProperty('border-radius',  '6px',     'important');
+    btn.style.setProperty('flex-shrink',    '0',       'important');
+    btn.style.setProperty('display',        'flex',    'important');
+    btn.style.setProperty('align-items',    'center',  'important');
+    btn.style.setProperty('justify-content','center',  'important');
   }
 
   function attachHamburger(modebar) {
@@ -22,14 +34,13 @@
     var btn = document.createElement('button');
     btn.className = 'modebar-hamburger';
     btn.title = 'Opções do gráfico';
-    btn.textContent = '▾';
-    styleBtn(btn, false);
+    btn.innerHTML = ARROW_DOWN;
+    styleBtn(btn);
 
     btn.addEventListener('click', function (e) {
       e.stopPropagation();
       var isOpen = modebar.classList.toggle('mb-open');
-      btn.textContent = isOpen ? '▴' : '▾';
-      styleBtn(btn, isOpen);
+      btn.innerHTML = isOpen ? ARROW_UP : ARROW_DOWN;
       modebar.querySelectorAll('.modebar-group').forEach(function (g) {
         if (isOpen) {
           g.style.removeProperty('display');
@@ -44,8 +55,7 @@
     document.addEventListener('click', function (e) {
       if (!modebar.contains(e.target) && modebar.classList.contains('mb-open')) {
         modebar.classList.remove('mb-open');
-        btn.textContent = '▾';
-        styleBtn(btn, false);
+        btn.innerHTML = ARROW_DOWN;
         modebar.querySelectorAll('.modebar-group').forEach(function (g) {
           g.style.setProperty('display', 'none', 'important');
         });

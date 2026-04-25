@@ -398,19 +398,26 @@ tr:hover td { background: var(--primary-light); }
     flex-direction: column;
     position: fixed;
     top: 0; left: 0;
-    height: 100vh;
+    height: 100vh;        /* fallback */
+    height: 100dvh;       /* exclui URL bar do navegador mobile */
+    max-height: 100dvh;
     width: 260px;
     z-index: 200;
     box-shadow: 4px 0 24px rgba(0,0,0,.35);
     overflow: hidden;
+    padding-bottom: env(safe-area-inset-bottom, 0); /* iPhone home indicator */
+  }
+  .sidebar.open .sidebar-brand {
+    flex-shrink: 0;
   }
   .sidebar.open .sidebar-nav {
-    flex: 1;
+    flex: 1 1 auto;
     overflow-y: auto;
     min-height: 0;
   }
   .sidebar.open .sidebar-footer {
     flex-shrink: 0;
+    background: var(--primary);
   }
 
   .main-content { padding: 12px; width: 100%; }
