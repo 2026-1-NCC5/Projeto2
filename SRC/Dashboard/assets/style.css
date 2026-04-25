@@ -473,17 +473,41 @@ h2.page-header {
   text-transform: uppercase;
 }
 
-.form-control {
+.form-control,
+input.form-control,
+.form-group input {
+  box-sizing: border-box !important;
+  display: block !important;
+  width: 100% !important;
   font-family: 'DM Sans', sans-serif !important;
-  border-radius: var(--radius-sm) !important;
-  border: 1px solid var(--border) !important;
-  padding: 11px 14px !important;
   font-size: 14px !important;
-  transition: border-color .15s, box-shadow .15s !important;
+  line-height: 1.4 !important;
+  height: 46px !important;
+  padding: 0 14px !important;
+  color: var(--text) !important;
   background: #FCFAF6 !important;
+  border: 1px solid var(--border) !important;
+  border-radius: var(--radius-sm) !important;
+  transition: border-color .15s, box-shadow .15s, background .15s !important;
+  vertical-align: middle !important;
+  -webkit-appearance: none !important;
+  appearance: none !important;
+  margin: 0 !important;
 }
 
-.form-control:focus {
+.form-control::placeholder,
+input.form-control::placeholder,
+.form-group input::placeholder {
+  color: var(--muted-soft) !important;
+  opacity: 0.65 !important;
+  font-weight: 400 !important;
+  font-size: 13px !important;
+  letter-spacing: 0 !important;
+}
+
+.form-control:focus,
+input.form-control:focus,
+.form-group input:focus {
   border-color: var(--primary) !important;
   box-shadow: 0 0 0 3px rgba(255, 107, 0, .12) !important;
   outline: none !important;
@@ -738,4 +762,29 @@ tr:hover td { background: #FFF9F2; }
 .DateRangePickerInput {
   border-radius: var(--radius-sm) !important;
   background: #FCFAF6 !important;
+}
+
+/* ── DatePickerRange mobile ───────────────────────────────────── */
+@media (max-width: 768px) {
+  .DateRangePicker_picker {
+    position: fixed !important;
+    top: 50% !important;
+    left: 50% !important;
+    transform: translate(-50%, -50%) !important;
+    z-index: 9999 !important;
+    border-radius: var(--radius-md) !important;
+    box-shadow: var(--shadow-lg) !important;
+    max-width: calc(100vw - 24px) !important;
+    overflow: auto !important;
+  }
+
+  .DayPicker,
+  .DayPicker_transitionContainer,
+  .CalendarMonthGrid {
+    max-width: calc(100vw - 48px) !important;
+  }
+
+  .DayPicker {
+    width: auto !important;
+  }
 }

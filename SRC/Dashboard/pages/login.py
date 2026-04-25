@@ -17,14 +17,14 @@ layout = html.Div([
                 html.Div([
                     html.Label("E-mail"),
                     dcc.Input(id="login-email", type="email",
-                              placeholder="admin@admin.com",
+                              placeholder="seu@email.com",
                               className="form-control", debounce=False,
                               style={"width": "100%"}),
                 ], className="form-group"),
                 html.Div([
                     html.Label("Senha"),
                     dcc.Input(id="login-password", type="password",
-                              placeholder="••••••••",
+                              placeholder="sua senha",
                               className="form-control", debounce=False,
                               style={"width": "100%"}),
                 ], className="form-group"),
