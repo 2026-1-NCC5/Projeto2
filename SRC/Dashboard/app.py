@@ -42,7 +42,7 @@ app.layout = html.Div([
                    "padding": "3px", "display": "flex", "alignItems": "center"},
         ),
         html.Span("Lideranças Empáticas", className="mobile-topbar-title"),
-    ], className="mobile-topbar"),
+    ], id="mobile-topbar", className="mobile-topbar"),
 
     # Overlay escuro ao abrir sidebar no mobile
     html.Div(id="sidebar-overlay", n_clicks=0, className="sidebar-overlay"),

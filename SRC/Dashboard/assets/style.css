@@ -488,13 +488,13 @@ tr:hover td { background: var(--primary-light); }
 
 /* Hambúrguer: seta que abre/fecha as opções do gráfico */
 .modebar-hamburger {
-  background: none;
-  border: none;
+  background: none !important;
+  border: none !important;
   cursor: pointer;
-  color: #999;
-  font-size: 14px;
+  color: #555 !important;
+  font-size: 13px !important;
   line-height: 1;
-  padding: 3px 6px;
+  padding: 3px 8px;
   border-radius: 6px;
   transition: color .15s, background .15s;
   flex-shrink: 0;
@@ -502,8 +502,8 @@ tr:hover td { background: var(--primary-light); }
 }
 
 .modebar-hamburger:hover {
-  color: var(--primary);
-  background: var(--primary-light);
+  color: var(--primary) !important;
+  background: var(--primary-light) !important;
 }
 
 /* Separador entre seta e os botões */
