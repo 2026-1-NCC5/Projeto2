@@ -93,7 +93,11 @@ def update_camera(team_id, category, from_date, to_date, auth_data):
     fig_bars = px.bar(agg, x="label", y="kg", text="text",
                       color_discrete_sequence=["#FF6B00"],
                       labels={"label": "Categoria", "kg": "kg"})
-    fig_bars.update_traces(textposition="outside")
+    fig_bars.update_traces(
+        textposition="outside",
+        customdata=agg["price"],
+        hovertemplate="<b>%{x}</b><br>%{y:.1f} kg<br>R$ %{customdata:,.2f}<extra></extra>",
+    )
     fig_bars.update_layout(paper_bgcolor="white", plot_bgcolor="white",
                            margin={"t": 40, "b": 30, "l": 40, "r": 10},
                            yaxis={"showgrid": True, "gridcolor": "#f0f0f0"},
@@ -108,7 +112,10 @@ def update_camera(team_id, category, from_date, to_date, auth_data):
                       color_discrete_sequence=["#FFB347"],
                       labels={"label": "Categoria", "pct": "Confiança (%)"},
                       range_y=[0, 115])
-    fig_conf.update_traces(textposition="outside")
+    fig_conf.update_traces(
+        textposition="outside",
+        hovertemplate="<b>%{x}</b><br>Confiança: %{y:.1f}%<extra></extra>",
+    )
     fig_conf.update_layout(paper_bgcolor="white", plot_bgcolor="white",
                            margin={"t": 40, "b": 30, "l": 40, "r": 10},
                            yaxis={"showgrid": True, "gridcolor": "#f0f0f0"},
@@ -120,6 +127,9 @@ def update_camera(team_id, category, from_date, to_date, auth_data):
     fig_line = px.line(timeline, x="date", y="detecções", markers=True,
                        color_discrete_sequence=["#FF6B00"],
                        labels={"date": "Data"})
+    fig_line.update_traces(
+        hovertemplate="<b>%{x|%d/%m/%Y}</b><br>%{y} detecções<extra></extra>"
+    )
     fig_line.update_layout(paper_bgcolor="white", plot_bgcolor="white",
                            margin={"t": 10, "b": 30, "l": 40, "r": 10})
     fig_line.update_xaxes(showgrid=False)
@@ -138,6 +148,7 @@ def update_camera(team_id, category, from_date, to_date, auth_data):
             colorscale=[[0, "#fff3e8"], [1, "#FF6B00"]],
             text=heat_pivot.values.round(1),
             texttemplate="%{text} kg",
+            hovertemplate="<b>%{y}</b><br>%{x}<br>%{z:.1f} kg<extra></extra>",
         ))
         fig_heat.update_layout(paper_bgcolor="white",
                                margin={"t": 10, "b": 30, "l": 10, "r": 10})

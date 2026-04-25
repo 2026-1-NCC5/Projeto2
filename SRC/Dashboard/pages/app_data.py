@@ -80,12 +80,15 @@ def update_app_data(team_id, category, from_date, to_date, auth_data):
         e = empty_figure()
         return kpis, e, e, e, html.P("Sem dados.", style={"color": "#aaa"})
 
-    # kg por equipe
+    # kg por equipe (horizontal)
     by_team = (df.groupby("team_name")["kg_amount"].sum()
                .reset_index().sort_values("kg_amount", ascending=True))
     fig_team = px.bar(by_team, x="kg_amount", y="team_name", orientation="h",
                       color_discrete_sequence=["#FF6B00"],
                       labels={"kg_amount": "kg", "team_name": "Equipe"})
+    fig_team.update_traces(
+        hovertemplate="<b>%{y}</b><br>%{x:.1f} kg<extra></extra>"
+    )
     fig_team.update_layout(paper_bgcolor="white", plot_bgcolor="white",
                            margin={"t": 10, "b": 30, "l": 10, "r": 10},
                            yaxis={"showgrid": False},
@@ -96,6 +99,11 @@ def update_app_data(team_id, category, from_date, to_date, auth_data):
     by_cat["label"] = by_cat["category"].map(CAT_LABELS)
     fig_donut = px.pie(by_cat, values="kg_amount", names="label", hole=0.45,
                        color_discrete_sequence=PLOTLY_COLORS)
+    fig_donut.update_traces(
+        textposition="inside",
+        textinfo="percent",
+        hovertemplate="<b>%{label}</b><br>%{value:.1f} kg<br>%{percent}<extra></extra>",
+    )
     fig_donut.update_layout(paper_bgcolor="white", margin={"t": 10, "b": 10})
 
     # Timeline
@@ -104,6 +112,9 @@ def update_app_data(team_id, category, from_date, to_date, auth_data):
     fig_line = px.line(timeline, x="date", y="registros", markers=True,
                        color_discrete_sequence=["#FF6B00"],
                        labels={"date": "Data", "registros": "Registros"})
+    fig_line.update_traces(
+        hovertemplate="<b>%{x|%d/%m/%Y}</b><br>%{y} registros<extra></extra>"
+    )
     fig_line.update_layout(paper_bgcolor="white", plot_bgcolor="white",
                            margin={"t": 10, "b": 30, "l": 40, "r": 10})
     fig_line.update_xaxes(showgrid=False)

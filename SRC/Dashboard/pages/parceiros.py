@@ -89,7 +89,7 @@ def update_public(category):
     ]
 
     if df is _API_ERROR:
-        msg = empty_figure("⚠️ Servidor indisponível — reinicie o container")
+        msg = empty_figure("⚠️ Servidor indisponível — reconstrua o container")
         return kpi_boxes, msg, msg, msg
 
     if df.empty:
@@ -101,6 +101,11 @@ def update_public(category):
     agg["label"] = agg["category"].map(CAT_LABELS)
     fig_donut = px.pie(agg, values="kg_amount", names="label", hole=0.45,
                        color_discrete_sequence=PLOTLY_COLORS)
+    fig_donut.update_traces(
+        textposition="inside",
+        textinfo="percent",
+        hovertemplate="<b>%{label}</b><br>%{value:.1f} kg<br>%{percent}<extra></extra>",
+    )
     fig_donut.update_layout(paper_bgcolor="white", showlegend=True,
                             margin={"t": 10, "b": 10, "l": 10, "r": 10})
 
@@ -110,6 +115,9 @@ def update_public(category):
     fig_line = px.line(timeline, x="date", y="count", markers=True,
                        color_discrete_sequence=["#FF6B00"],
                        labels={"date": "Data", "count": "Detecções"})
+    fig_line.update_traces(
+        hovertemplate="<b>%{x|%d/%m/%Y}</b><br>%{y} detecções<extra></extra>"
+    )
     fig_line.update_layout(paper_bgcolor="white", plot_bgcolor="white",
                            margin={"t": 10, "b": 30, "l": 40, "r": 10})
     fig_line.update_xaxes(showgrid=False)
@@ -124,7 +132,11 @@ def update_public(category):
     fig_bars = px.bar(bar_agg, x="label", y="kg", text="text",
                       color_discrete_sequence=["#FF6B00"],
                       labels={"label": "Categoria", "kg": "kg"})
-    fig_bars.update_traces(textposition="outside")
+    fig_bars.update_traces(
+        textposition="outside",
+        customdata=bar_agg["price"],
+        hovertemplate="<b>%{x}</b><br>%{y:.1f} kg<br>R$ %{customdata:,.2f}<extra></extra>",
+    )
     fig_bars.update_layout(paper_bgcolor="white", plot_bgcolor="white",
                            margin={"t": 40, "b": 30, "l": 40, "r": 10})
     fig_bars.update_yaxes(showgrid=True, gridcolor="#f0f0f0")

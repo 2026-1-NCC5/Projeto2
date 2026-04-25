@@ -85,12 +85,15 @@ def update_goals(team_id, auth_data):
     fig.add_trace(go.Bar(
         name="Realizado (App)", x=x_labels, y=df_m["kg_app"],
         marker_color="#FF6B00",
+        customdata=df_m["pct"],
+        hovertemplate="<b>%{x}</b><br>Realizado: %{y:.1f} kg<br>%{customdata:.1f}% da meta<extra></extra>",
     ))
     fig.add_trace(go.Scatter(
         name="Meta", x=x_labels, y=df_m["target_kg"],
         mode="markers",
         marker={"symbol": "line-ew", "size": 14, "color": "#c62828",
                 "line": {"width": 3, "color": "#c62828"}},
+        hovertemplate="<b>%{x}</b><br>Meta: %{y:.1f} kg<extra></extra>",
     ))
     fig.update_layout(
         paper_bgcolor="white", plot_bgcolor="white",

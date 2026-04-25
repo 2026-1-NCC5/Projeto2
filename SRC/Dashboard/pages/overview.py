@@ -73,10 +73,16 @@ def update_overview(team_id, from_date, to_date, auth_data):
     comp["label"] = comp["category"].map(CAT_LABELS)
 
     fig = go.Figure()
-    fig.add_trace(go.Bar(name="App", x=comp["label"], y=comp["kg_app"],
-                         marker_color="#FF6B00"))
-    fig.add_trace(go.Bar(name="Câmera", x=comp["label"], y=comp["kg_camera"],
-                         marker_color="#FFB347"))
+    fig.add_trace(go.Bar(
+        name="App", x=comp["label"], y=comp["kg_app"],
+        marker_color="#FF6B00",
+        hovertemplate="<b>%{x}</b><br>App: %{y:.1f} kg<extra></extra>",
+    ))
+    fig.add_trace(go.Bar(
+        name="Câmera", x=comp["label"], y=comp["kg_camera"],
+        marker_color="#FFB347",
+        hovertemplate="<b>%{x}</b><br>Câmera: %{y:.1f} kg<extra></extra>",
+    ))
     fig.update_layout(
         barmode="group", paper_bgcolor="white", plot_bgcolor="white",
         legend={"orientation": "h", "y": 1.12},

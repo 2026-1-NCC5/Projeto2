@@ -81,16 +81,25 @@ def update_teams(pathname, auth_data):
     fig_rank = px.bar(merged_asc, x="total", y="name", orientation="h",
                       color_discrete_sequence=["#FF6B00"],
                       labels={"total": "kg Total", "name": "Equipe"})
+    fig_rank.update_traces(
+        hovertemplate="<b>%{y}</b><br>Total: %{x:.1f} kg<extra></extra>"
+    )
     fig_rank.update_layout(paper_bgcolor="white", plot_bgcolor="white",
                            margin={"t": 10, "b": 30, "l": 10, "r": 10},
                            yaxis={"showgrid": False},
                            xaxis={"showgrid": True, "gridcolor": "#f0f0f0"})
 
     fig_comp = go.Figure()
-    fig_comp.add_trace(go.Bar(name="App", x=merged["name"], y=merged["kg_app"],
-                              marker_color="#FF6B00"))
-    fig_comp.add_trace(go.Bar(name="Câmera", x=merged["name"], y=merged["kg_cam"],
-                              marker_color="#FFB347"))
+    fig_comp.add_trace(go.Bar(
+        name="App", x=merged["name"], y=merged["kg_app"],
+        marker_color="#FF6B00",
+        hovertemplate="<b>%{x}</b><br>App: %{y:.1f} kg<extra></extra>",
+    ))
+    fig_comp.add_trace(go.Bar(
+        name="Câmera", x=merged["name"], y=merged["kg_cam"],
+        marker_color="#FFB347",
+        hovertemplate="<b>%{x}</b><br>Câmera: %{y:.1f} kg<extra></extra>",
+    ))
     fig_comp.update_layout(
         barmode="group", paper_bgcolor="white", plot_bgcolor="white",
         margin={"t": 50, "b": 40, "l": 40, "r": 10},
