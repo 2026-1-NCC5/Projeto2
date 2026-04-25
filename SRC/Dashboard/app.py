@@ -1,5 +1,5 @@
 import dash
-from dash import Dash, html, dcc, Input, Output, State, callback
+from dash import Dash, html, dcc, Input, Output, State, callback, ctx
 import dash_bootstrap_components as dbc
 from layout import build_sidebar
 
@@ -9,11 +9,41 @@ app = Dash(
     external_stylesheets=[dbc.themes.BOOTSTRAP],
     suppress_callback_exceptions=True,
     title="Lideranças Empáticas",
+    update_title=None,
 )
+
+app.index_string = """<!DOCTYPE html>
+<html>
+<head>
+    {%metas%}
+    <title>{%title%}</title>
+    <link rel="icon" type="image/png" href="/assets/logo.png">
+    {%css%}
+</head>
+<body>
+    {%app_entry%}
+    <footer>{%config%}{%scripts%}{%renderer%}</footer>
+</body>
+</html>
+"""
 
 app.layout = html.Div([
     dcc.Store(id="auth-store", storage_type="session"),
+    dcc.Store(id="sidebar-open", data=False),
     dcc.Location(id="url"),
+
+    # Barra mobile com hambúrguer
+    html.Div([
+        html.Button("☰", id="mobile-menu-btn", n_clicks=0,
+                    className="mobile-menu-btn"),
+        html.Img(src="/assets/logo.png",
+                 style={"height": "28px", "filter": "brightness(0) invert(1)"}),
+        html.Span("Lideranças Empáticas", className="mobile-topbar-title"),
+    ], className="mobile-topbar"),
+
+    # Overlay escuro ao abrir sidebar no mobile
+    html.Div(id="sidebar-overlay", n_clicks=0, className="sidebar-overlay"),
+
     html.Div([
         html.Div(id="sidebar-container"),
         html.Div(dash.page_container, id="content-wrapper", className="main-content"),
@@ -22,13 +52,30 @@ app.layout = html.Div([
 
 
 @callback(
-    Output("sidebar-container", "children"),
+    Output("sidebar-open", "data"),
+    Input("mobile-menu-btn", "n_clicks"),
+    Input("sidebar-overlay", "n_clicks"),
     Input("url", "pathname"),
+    State("sidebar-open", "data"),
+    prevent_initial_call=True,
 )
-def render_sidebar(pathname):
+def toggle_sidebar(btn, overlay, pathname, is_open):
+    if ctx.triggered_id == "url":
+        return False
+    return not bool(is_open)
+
+
+@callback(
+    Output("sidebar-container", "children"),
+    Output("sidebar-overlay", "className"),
+    Input("url", "pathname"),
+    Input("sidebar-open", "data"),
+)
+def render_sidebar(pathname, is_open):
+    overlay_class = "sidebar-overlay active" if is_open else "sidebar-overlay"
     if pathname and pathname.startswith("/dashboard"):
-        return build_sidebar(pathname)
-    return []
+        return build_sidebar(pathname, is_open=bool(is_open)), overlay_class
+    return [], "sidebar-overlay"
 
 
 @callback(

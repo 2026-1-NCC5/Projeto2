@@ -13,7 +13,8 @@ _GRAPH_H = {"height": "340px"}
 def _public_header():
     return html.Div([
         html.Div([
-            html.Div("📷", style={"fontSize": "22px"}),
+            html.Img(src="/assets/logo.png",
+                     style={"height": "40px", "filter": "brightness(0) invert(1)"}),
             html.Div([
                 html.H1("Lideranças Empáticas"),
                 html.Div("Resultados da Arrecadação", className="sub"),

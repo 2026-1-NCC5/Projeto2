@@ -39,7 +39,7 @@ NAV_ITEMS = [
 ]
 
 
-def build_sidebar(pathname: str) -> html.Div:
+def build_sidebar(pathname: str, is_open: bool = False) -> html.Div:
     items = []
     for item in NAV_ITEMS:
         is_active = pathname == item["href"] or (
@@ -53,8 +53,11 @@ def build_sidebar(pathname: str) -> html.Div:
             )
         )
 
+    class_name = "sidebar open" if is_open else "sidebar"
     return html.Div([
         html.Div([
+            html.Img(src="/assets/logo.png",
+                     style={"height": "42px", "marginBottom": "8px", "display": "block"}),
             html.H1("Lideranças Empáticas"),
             html.Div("Painel Admin", className="sub"),
         ], className="sidebar-brand"),
@@ -63,7 +66,7 @@ def build_sidebar(pathname: str) -> html.Div:
             dcc.Link("🚪 Sair", href="/logout", className="nav-item",
                      style={"color": "rgba(255,255,255,.7)", "textDecoration": "none"}),
         ], className="sidebar-footer"),
-    ], className="sidebar", id="sidebar")
+    ], className=class_name, id="sidebar")
 
 
 def kpi_box(value: str, label: str) -> html.Div:

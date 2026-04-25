@@ -8,7 +8,9 @@ layout = html.Div([
     dcc.Location(id="login-redirect"),
     html.Div([
         html.Div([
-            html.Div("📷", style={"fontSize": "36px", "textAlign": "center", "marginBottom": "8px"}),
+            html.Img(src="/assets/logo.png",
+                     style={"height": "72px", "display": "block",
+                            "margin": "0 auto 12px"}),
             html.H2("Lideranças Empáticas"),
             html.Div("Painel do Professor", className="sub"),
             html.Div([

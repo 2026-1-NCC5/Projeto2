@@ -33,6 +33,23 @@ services:
     networks:
       - appnet
 
+  dashboard:
+    build: ../Dashboard
+    container_name: liderancas_dashboard
+    restart: always
+    env_file:
+      - ../Dashboard/.env
+    environment:
+      - SERVER_URL=http://liderancas_backend:8000
+    volumes:
+      - ../Dashboard:/app
+    ports:
+      - "8050:8050"
+    networks:
+      - appnet
+    depends_on:
+      - backend
+
 volumes:
   postgres_data:
 
