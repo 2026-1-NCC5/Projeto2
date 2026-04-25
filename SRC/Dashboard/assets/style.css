@@ -325,3 +325,33 @@ tr:hover td { background: var(--primary-light); }
   cursor: pointer;
   border-radius: 6px;
 }
+
+/* ── Plotly modebar ───────────────────────────────────────────── */
+.modebar {
+  background: #fff !important;
+  border-radius: 8px !important;
+  box-shadow: 0 2px 8px rgba(0,0,0,.1) !important;
+  border: 1px solid var(--border) !important;
+  padding: 2px 4px !important;
+}
+
+.modebar-btn path {
+  fill: #bbb !important;
+  transition: fill .15s;
+}
+
+.modebar-btn:hover path {
+  fill: var(--primary) !important;
+}
+
+.modebar-btn.active path {
+  fill: var(--primary) !important;
+}
+
+.modebar-group {
+  border-right: 1px solid var(--border) !important;
+}
+
+.modebar-group:last-child {
+  border-right: none !important;
+}

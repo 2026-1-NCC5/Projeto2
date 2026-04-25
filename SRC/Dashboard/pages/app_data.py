@@ -3,7 +3,7 @@ from dash import html, dcc, callback, Input, Output, State
 import plotly.express as px
 import pandas as pd
 from data import get_readings, get_readings_kpis, get_teams
-from layout import (CAT_LABELS, PLOTLY_COLORS, filter_team_dropdown,
+from layout import (CAT_LABELS, PLOTLY_COLORS, PLOTLY_CONFIG, filter_team_dropdown,
                     filter_category_dropdown, filter_daterange, kpi_box, empty_figure)
 
 dash.register_page(__name__, path="/dashboard/app", title="App Manual — Admin")
@@ -26,20 +26,20 @@ def layout():
             html.Div([
                 html.Div([
                     html.H3("kg por Equipe"),
-                    dcc.Graph(id="app-by-team", config={"responsive": True}),
+                    dcc.Graph(id="app-by-team", config=PLOTLY_CONFIG),
                 ], className="card"),
             ], style={"flex": "1", "minWidth": "300px"}),
             html.Div([
                 html.Div([
                     html.H3("Distribuição por Categoria"),
-                    dcc.Graph(id="app-donut", config={"responsive": True}),
+                    dcc.Graph(id="app-donut", config=PLOTLY_CONFIG),
                 ], className="card"),
             ], style={"flex": "1", "minWidth": "280px"}),
         ], style={"display": "flex", "gap": "16px", "flexWrap": "wrap"}),
 
         html.Div([
             html.H3("Registros ao Longo do Tempo"),
-            dcc.Graph(id="app-timeline", config={"responsive": True}),
+            dcc.Graph(id="app-timeline", config=PLOTLY_CONFIG),
         ], className="card"),
 
         html.Div([
@@ -63,8 +63,8 @@ def layout():
 )
 def update_app_data(team_id, category, from_date, to_date, auth_data):
     token = (auth_data or {}).get("token", "")
-    tid = None if team_id == "all" else int(team_id)
-    cat = None if category == "all" else category
+    tid = None if not team_id or team_id == "all" else int(team_id)
+    cat = None if not category or category == "all" else category
     kpis_data = get_readings_kpis(token, team_id=tid, category=cat,
                                    from_date=from_date, to_date=to_date)
     df = get_readings(token, team_id=tid, category=cat, from_date=from_date, to_date=to_date)

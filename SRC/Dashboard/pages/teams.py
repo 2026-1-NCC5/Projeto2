@@ -4,7 +4,7 @@ import plotly.express as px
 import plotly.graph_objects as go
 import pandas as pd
 from data import get_teams, get_readings, get_camera_readings, get_users
-from layout import kpi_box, empty_figure
+from layout import PLOTLY_CONFIG, kpi_box, empty_figure
 
 dash.register_page(__name__, path="/dashboard/teams", title="Equipes — Admin")
 
@@ -15,13 +15,13 @@ layout = html.Div([
         html.Div([
             html.Div([
                 html.H3("Ranking por kg Total"),
-                dcc.Graph(id="teams-ranking", config={"responsive": True}),
+                dcc.Graph(id="teams-ranking", config=PLOTLY_CONFIG),
             ], className="card"),
         ], style={"flex": "1", "minWidth": "300px"}),
         html.Div([
             html.Div([
                 html.H3("App vs Câmera por Equipe"),
-                dcc.Graph(id="teams-comparison", config={"responsive": True}),
+                dcc.Graph(id="teams-comparison", config=PLOTLY_CONFIG),
             ], className="card"),
         ], style={"flex": "1", "minWidth": "300px"}),
     ], style={"display": "flex", "gap": "16px", "flexWrap": "wrap"}),

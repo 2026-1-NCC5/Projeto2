@@ -1,10 +1,9 @@
 import dash
 from dash import html, dcc, callback, Input, Output
 import plotly.express as px
-import plotly.graph_objects as go
 import pandas as pd
 from data import get_public_camera_readings, get_public_camera_kpis
-from layout import CAT_LABELS, PLOTLY_COLORS, empty_figure
+from layout import CAT_LABELS, PLOTLY_COLORS, PLOTLY_CONFIG, empty_figure
 
 dash.register_page(__name__, path="/", title="Resultados — Lideranças Empáticas")
 
@@ -25,7 +24,7 @@ def _public_header():
 layout = html.Div([
     _public_header(),
     html.Div([
-        # Filtros
+        # Filtro apenas por categoria
         html.Div([
             html.Div([
                 html.Span("Categoria", className="filter-label"),
@@ -34,16 +33,7 @@ layout = html.Div([
                     options=[{"label": "Todas", "value": "all"}] + [
                         {"label": v, "value": k} for k, v in CAT_LABELS.items()
                     ],
-                    value="all", clearable=False, style={"minWidth": "180px"},
-                ),
-            ]),
-            html.Div([
-                html.Span("Período", className="filter-label"),
-                dcc.DatePickerRange(
-                    id="pub-filter-dates",
-                    display_format="DD/MM/YYYY",
-                    start_date_placeholder_text="Início",
-                    end_date_placeholder_text="Fim",
+                    value="all", clearable=False, style={"minWidth": "200px"},
                 ),
             ]),
         ], className="filters-row"),
@@ -56,13 +46,13 @@ layout = html.Div([
             html.Div([
                 html.Div([
                     html.H3("Distribuição por Categoria"),
-                    dcc.Graph(id="pub-donut", config={"responsive": True}),
+                    dcc.Graph(id="pub-donut", config=PLOTLY_CONFIG),
                 ], className="card"),
             ], style={"flex": "1", "minWidth": "280px"}),
             html.Div([
                 html.Div([
                     html.H3("Detecções ao Longo do Tempo"),
-                    dcc.Graph(id="pub-timeline", config={"responsive": True}),
+                    dcc.Graph(id="pub-timeline", config=PLOTLY_CONFIG),
                 ], className="card"),
             ], style={"flex": "2", "minWidth": "320px"}),
         ], style={"display": "flex", "gap": "16px", "flexWrap": "wrap"}),
@@ -70,7 +60,7 @@ layout = html.Div([
         # Barras
         html.Div([
             html.H3("kg Validado por Categoria"),
-            dcc.Graph(id="pub-bars", config={"responsive": True}),
+            dcc.Graph(id="pub-bars", config=PLOTLY_CONFIG),
         ], className="card"),
 
     ], style={"maxWidth": "1100px", "margin": "24px auto", "padding": "0 16px"}),
@@ -83,13 +73,11 @@ layout = html.Div([
     Output("pub-timeline", "figure"),
     Output("pub-bars", "figure"),
     Input("pub-filter-cat", "value"),
-    Input("pub-filter-dates", "start_date"),
-    Input("pub-filter-dates", "end_date"),
 )
-def update_public(category, from_date, to_date):
-    cat = None if category == "all" else category
-    kpis = get_public_camera_kpis(category=cat, from_date=from_date, to_date=to_date)
-    df = get_public_camera_readings(category=cat, from_date=from_date, to_date=to_date)
+def update_public(category):
+    cat = None if not category or category == "all" else category
+    kpis = get_public_camera_kpis(category=cat)
+    df = get_public_camera_readings(category=cat)
 
     kpi_boxes = [
         html.Div([html.Div(f"{kpis['total_kg']:,.1f} kg", className="val"),

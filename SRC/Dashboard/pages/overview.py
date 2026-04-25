@@ -4,7 +4,7 @@ import dash_bootstrap_components as dbc
 import plotly.graph_objects as go
 import pandas as pd
 from data import get_camera_kpis, get_readings_kpis, get_comparison, get_goals, get_teams
-from layout import CAT_LABELS, filter_team_dropdown, filter_daterange, kpi_box, empty_figure
+from layout import CAT_LABELS, PLOTLY_CONFIG, filter_team_dropdown, filter_daterange, kpi_box, empty_figure
 
 dash.register_page(__name__, path="/dashboard", title="Visão Geral — Admin")
 
@@ -23,7 +23,7 @@ def layout():
 
         html.Div([
             html.H3("App vs Câmera — kg por categoria"),
-            dcc.Graph(id="ov-comparison-chart", config={"responsive": True}),
+            dcc.Graph(id="ov-comparison-chart", config=PLOTLY_CONFIG),
             html.Div([
                 html.Button("▼ Ver detalhes", id="ov-toggle-table",
                             n_clicks=0, className="btn-secondary",
@@ -49,7 +49,7 @@ def layout():
 )
 def update_overview(team_id, from_date, to_date, auth_data):
     token = (auth_data or {}).get("token", "")
-    tid = None if team_id == "all" else int(team_id)
+    tid = None if not team_id or team_id == "all" else int(team_id)
     cam_kpis = get_camera_kpis(token, team_id=tid, from_date=from_date, to_date=to_date)
     app_kpis = get_readings_kpis(token, team_id=tid, from_date=from_date, to_date=to_date)
     goals_df = get_goals(token, team_id=tid)

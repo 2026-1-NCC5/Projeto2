@@ -11,6 +11,17 @@ COLORS = {
 
 PLOTLY_COLORS = ["#FF6B00", "#FFB347", "#FF8C42", "#E65C00", "#FFC87A"]
 
+PLOTLY_CONFIG = {
+    "responsive": True,
+    "displayModeBar": "hover",
+    "modeBarButtonsToRemove": [
+        "select2d", "lasso2d", "autoScale2d",
+        "hoverClosestCartesian", "hoverCompareCartesian", "toggleSpikelines",
+    ],
+    "displaylogo": False,
+    "toImageButtonOptions": {"format": "png", "scale": 2, "filename": "grafico"},
+}
+
 CAT_LABELS = {
     "arroz": "Arroz",
     "feijao": "Feijão",

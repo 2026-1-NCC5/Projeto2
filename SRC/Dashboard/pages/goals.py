@@ -3,7 +3,7 @@ from dash import html, dcc, callback, Input, Output, State
 import plotly.graph_objects as go
 import pandas as pd
 from data import get_goals, get_readings, get_camera_readings, get_teams
-from layout import CAT_LABELS, filter_team_dropdown, kpi_box, empty_figure
+from layout import CAT_LABELS, PLOTLY_CONFIG, filter_team_dropdown, kpi_box, empty_figure
 
 dash.register_page(__name__, path="/dashboard/goals", title="Metas — Admin")
 
@@ -19,7 +19,7 @@ def layout():
 
         html.Div([
             html.H3("Progresso por Equipe e Categoria"),
-            dcc.Graph(id="goals-progress", config={"responsive": True}),
+            dcc.Graph(id="goals-progress", config=PLOTLY_CONFIG),
         ], className="card"),
 
         html.Div([
@@ -38,7 +38,7 @@ def layout():
 )
 def update_goals(team_id, auth_data):
     token = (auth_data or {}).get("token", "")
-    tid = None if team_id == "all" else int(team_id)
+    tid = None if not team_id or team_id == "all" else int(team_id)
     goals = get_goals(token, team_id=tid)
     df_app = get_readings(token, team_id=tid)
     df_cam = get_camera_readings(token, team_id=tid)
@@ -100,7 +100,6 @@ def update_goals(team_id, auth_data):
         legend={"orientation": "h", "y": 1.1},
     )
 
-    # Tabela
     table_rows = [html.Tr([
         html.Th(c) for c in
         ["Equipe", "Categoria", "Meta (kg)", "App (kg)", "Câmera (kg)", "% Atingido"]

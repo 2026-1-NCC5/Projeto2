@@ -4,7 +4,7 @@ import plotly.express as px
 import plotly.graph_objects as go
 import pandas as pd
 from data import get_camera_readings, get_camera_kpis, get_teams
-from layout import (CAT_LABELS, PLOTLY_COLORS, filter_team_dropdown,
+from layout import (CAT_LABELS, PLOTLY_COLORS, PLOTLY_CONFIG, filter_team_dropdown,
                     filter_category_dropdown, filter_daterange, kpi_box, empty_figure)
 
 dash.register_page(__name__, path="/dashboard/camera", title="Câmera YOLO — Admin")
@@ -27,25 +27,25 @@ def layout():
             html.Div([
                 html.Div([
                     html.H3("kg e Valor por Categoria"),
-                    dcc.Graph(id="cam-bars", config={"responsive": True}),
+                    dcc.Graph(id="cam-bars", config=PLOTLY_CONFIG),
                 ], className="card"),
             ], style={"flex": "2", "minWidth": "320px"}),
             html.Div([
                 html.Div([
                     html.H3("Confiança Média por Categoria"),
-                    dcc.Graph(id="cam-conf-bars", config={"responsive": True}),
+                    dcc.Graph(id="cam-conf-bars", config=PLOTLY_CONFIG),
                 ], className="card"),
             ], style={"flex": "1", "minWidth": "260px"}),
         ], style={"display": "flex", "gap": "16px", "flexWrap": "wrap"}),
 
         html.Div([
             html.H3("Detecções ao Longo do Tempo"),
-            dcc.Graph(id="cam-timeline", config={"responsive": True}),
+            dcc.Graph(id="cam-timeline", config=PLOTLY_CONFIG),
         ], className="card"),
 
         html.Div([
             html.H3("Heatmap: Equipe × Categoria (kg)"),
-            dcc.Graph(id="cam-heatmap", config={"responsive": True}),
+            dcc.Graph(id="cam-heatmap", config=PLOTLY_CONFIG),
         ], className="card"),
     ])
 
@@ -64,8 +64,8 @@ def layout():
 )
 def update_camera(team_id, category, from_date, to_date, auth_data):
     token = (auth_data or {}).get("token", "")
-    tid = None if team_id == "all" else int(team_id)
-    cat = None if category == "all" else category
+    tid = None if not team_id or team_id == "all" else int(team_id)
+    cat = None if not category or category == "all" else category
     kpis_data = get_camera_kpis(token, team_id=tid, category=cat,
                                  from_date=from_date, to_date=to_date)
     df = get_camera_readings(token, team_id=tid, category=cat,
