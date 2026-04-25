@@ -36,8 +36,11 @@ app.layout = html.Div([
     html.Div([
         html.Button("☰", id="mobile-menu-btn", n_clicks=0,
                     className="mobile-menu-btn"),
-        html.Img(src="/assets/logo.png",
-                 style={"height": "28px", "filter": "brightness(0) invert(1)"}),
+        html.Div(
+            html.Img(src="/assets/logo.png", style={"height": "26px", "display": "block"}),
+            style={"background": "white", "borderRadius": "6px",
+                   "padding": "3px", "display": "flex", "alignItems": "center"},
+        ),
         html.Span("Lideranças Empáticas", className="mobile-topbar-title"),
     ], className="mobile-topbar"),
 

@@ -355,22 +355,60 @@ tr:hover td { background: var(--primary-light); }
   .mobile-topbar { display: flex; }
   .app-wrapper { display: block; }
 
+  /* Sidebar: footer sempre visível, nav com scroll interno */
   .sidebar { display: none; }
   .sidebar.open {
     display: flex;
+    flex-direction: column;
     position: fixed;
     top: 0; left: 0;
     height: 100vh;
     width: 260px;
     z-index: 200;
     box-shadow: 4px 0 24px rgba(0,0,0,.35);
+    overflow: hidden;
+  }
+  .sidebar.open .sidebar-nav {
+    flex: 1;
+    overflow-y: auto;
+    min-height: 0; /* permite o scroll funcionar dentro do flex */
+  }
+  .sidebar.open .sidebar-footer {
+    flex-shrink: 0; /* footer nunca some */
   }
 
   .main-content { padding: 12px; width: 100%; }
   .kpi-grid { grid-template-columns: 1fr 1fr; gap: 8px; }
-  .filters-row { flex-direction: column; gap: 8px; }
   .card { padding: 14px 16px; }
   .public-header { position: relative; }
+
+  /* Filtros: coluna, itens ocupam largura total e alinhados à esquerda */
+  .filters-row {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 8px;
+  }
+  .filters-row > div {
+    width: 100%;
+  }
+  .filters-row > div > .Select,
+  .filters-row > div > div {
+    min-width: unset !important;
+    width: 100% !important;
+  }
+
+  /* Tabelas: scroll horizontal para não vazar do card */
+  #ov-comparison-table,
+  #app-ranking-table,
+  #goals-table {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+  #ov-comparison-table table,
+  #app-ranking-table table,
+  #goals-table table {
+    min-width: 460px;
+  }
 }
 
 @media (max-width: 480px) {
