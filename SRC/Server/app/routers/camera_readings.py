@@ -55,6 +55,7 @@ def create_camera_reading(
         category=data.category,
         confidence=data.confidence,
         kg_amount=data.kg_amount,
+        price=data.price,
         evidence_path=data.evidence_path,
     )
     db.add(reading)
@@ -68,6 +69,7 @@ def create_camera_reading(
         "category": reading.category,
         "confidence": reading.confidence,
         "kg_amount": reading.kg_amount,
+        "price": reading.price,
         "evidence_path": reading.evidence_path,
         "created_at": reading.created_at,
     }
@@ -87,6 +89,7 @@ def camera_summary(
             Team.name.label("team_name"),
             CameraReading.category,
             func.sum(CameraReading.kg_amount).label("total_kg"),
+            func.sum(CameraReading.price).label("total_price"),
             func.avg(CameraReading.confidence).label("avg_confidence"),
             func.count(CameraReading.id).label("count"),
         )
@@ -108,6 +111,7 @@ def camera_summary(
             "team_name": r.team_name,
             "category": r.category,
             "total_kg": r.total_kg or 0.0,
+            "total_price": round(r.total_price or 0.0, 2),
             "avg_confidence": round(r.avg_confidence or 0.0, 4),
             "count": r.count,
         }
@@ -148,6 +152,7 @@ def list_camera_readings(
             "category": r.category,
             "confidence": r.confidence,
             "kg_amount": r.kg_amount,
+            "price": r.price,
             "evidence_path": r.evidence_path,
             "created_at": r.created_at,
         })

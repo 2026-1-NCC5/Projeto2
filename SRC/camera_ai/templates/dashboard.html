@@ -79,6 +79,7 @@
       <div class="stats-grid">
         <div class="stat-box"><div class="val" id="stat-count">—</div><div class="lbl">Detecções</div></div>
         <div class="stat-box"><div class="val" id="stat-kg">—</div><div class="lbl">Total kg</div></div>
+        <div class="stat-box"><div class="val" id="stat-valor">—</div><div class="lbl">Valor total (R$)</div></div>
         <div class="stat-box"><div class="val" id="stat-conf">—</div><div class="lbl">Confiança média</div></div>
         <div class="stat-box"><div class="val" id="stat-team">—</div><div class="lbl">Equipe</div></div>
       </div>
@@ -288,24 +289,29 @@
       document.getElementById('stat-count').textContent = data.length || '0';
       if (data.length === 0) {
         document.getElementById('stat-kg').textContent = '0 kg';
+        document.getElementById('stat-valor').textContent = 'R$ 0,00';
         document.getElementById('stat-conf').textContent = '—';
         return;
       }
       document.getElementById('stat-kg').textContent = data.reduce((s, r) => s + r.kg_amount, 0).toFixed(1) + ' kg';
+      const totalValor = data.reduce((s, r) => s + (r.price || 0), 0);
+      document.getElementById('stat-valor').textContent = 'R$ ' + totalValor.toFixed(2).replace('.', ',');
       document.getElementById('stat-conf').textContent = (data.reduce((s, r) => s + r.confidence, 0) / data.length * 100).toFixed(0) + '%';
     }
 
     function renderTable(data) {
       const container = document.getElementById('readings-container');
       if (data.length === 0) { container.innerHTML = '<div class="empty">Nenhuma detecção encontrada.</div>'; return; }
-      let html = '<table><thead><tr><th>Data/Hora</th><th>Equipe</th><th>Categoria</th><th>Kg</th><th>Confiança</th></tr></thead><tbody>';
+      let html = '<table><thead><tr><th>Data/Hora</th><th>Equipe</th><th>Categoria</th><th>Kg</th><th>Valor (R$)</th><th>Confiança</th></tr></thead><tbody>';
       for (const r of data) {
         const pct = Math.round(r.confidence * 100);
+        const valorFmt = r.price != null ? 'R$ ' + r.price.toFixed(2).replace('.', ',') : '—';
         html += `<tr>
           <td>${new Date(r.created_at).toLocaleString('pt-BR')}</td>
           <td>${r.team_name || '—'}</td>
           <td><span class="badge">${CAT[r.category] || r.category}</span></td>
           <td>${r.kg_amount.toFixed(2)} kg</td>
+          <td>${valorFmt}</td>
           <td>${pct}%<div class="conf-bar"><span style="width:${pct}%"></span></div></td>
         </tr>`;
       }

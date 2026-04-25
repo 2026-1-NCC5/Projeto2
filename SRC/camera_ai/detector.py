@@ -47,11 +47,11 @@ CATEGORY_MAP = {
 }
 
 PRODUCTS = {
-    "arroz":    {"peso_kg": 5.0},
-    "feijao":   {"peso_kg": 1.0},
-    "macarrao": {"peso_kg": 0.5},
-    "acucar":   {"peso_kg": 1.0},
-    "outros":   {"peso_kg": 1.0},
+    "arroz":    {"peso_kg": 5.0, "price": 28.90},
+    "feijao":   {"peso_kg": 1.0, "price": 8.50},
+    "macarrao": {"peso_kg": 0.5, "price": 4.20},
+    "acucar":   {"peso_kg": 1.0, "price": 4.90},
+    "outros":   {"peso_kg": 1.0, "price": 5.00},
 }
 
 os.makedirs(EVIDENCE_DIR, exist_ok=True)
@@ -59,7 +59,7 @@ os.makedirs(LOG_DIR, exist_ok=True)
 
 if not os.path.exists(LOG_FILE):
     with open(LOG_FILE, mode="w", newline="", encoding="utf-8") as f:
-        csv.writer(f).writerow(["timestamp", "category", "confidence", "peso_kg", "evidence_path", "status"])
+        csv.writer(f).writerow(["timestamp", "category", "confidence", "peso_kg", "price", "evidence_path", "status"])
 
 if not os.path.exists(MODEL_PATH):
     raise FileNotFoundError(f"Modelo não encontrado em: {MODEL_PATH}")
@@ -79,12 +79,13 @@ last_saved_label = None
 last_saved_time = 0.0
 total_peso = 0.0
 total_itens = 0
+total_valor = 0.0
 
 # threads pendentes — NÃO são daemon para garantir envio completo ao fechar
 _pending_threads: list[threading.Thread] = []
 
 
-def _send_to_server(label: str, conf: float, peso: float, evidence_path: str, log_row_idx: int):
+def _send_to_server(label: str, conf: float, peso: float, price: float, evidence_path: str, log_row_idx: int):
     status = "erro"
     try:
         resp = requests.post(
@@ -94,6 +95,7 @@ def _send_to_server(label: str, conf: float, peso: float, evidence_path: str, lo
                 "category": label,
                 "confidence": round(conf, 4),
                 "kg_amount": peso,
+                "price": price,
                 "evidence_path": evidence_path,
             },
             headers={"X-Camera-Key": CAMERA_API_KEY},
@@ -153,9 +155,12 @@ while True:
                 evidence_path = os.path.join(EVIDENCE_DIR, f"{current_label}_{ts}.jpg")
                 cv2.imwrite(evidence_path, frame)
 
-                peso = PRODUCTS.get(current_label, {"peso_kg": 1.0})["peso_kg"]
+                prod = PRODUCTS.get(current_label, {"peso_kg": 1.0, "price": 5.00})
+                peso = prod["peso_kg"]
+                price = prod["price"]
                 total_peso += peso
                 total_itens += 1
+                total_valor += price
 
                 # log local — guarda índice da linha para atualizar status depois
                 with open(LOG_FILE, mode="r", encoding="utf-8") as f:
@@ -163,15 +168,15 @@ while True:
                 with open(LOG_FILE, mode="a", newline="", encoding="utf-8") as f:
                     csv.writer(f).writerow([
                         datetime.now().isoformat(), current_label,
-                        f"{current_conf:.4f}", f"{peso:.2f}", evidence_path, "pendente",
+                        f"{current_conf:.4f}", f"{peso:.2f}", f"{price:.2f}", evidence_path, "pendente",
                     ])
 
-                print(f"[→] Detectado: {raw_label} → {current_label} | {peso:.1f}kg | conf={current_conf:.0%} — enviando...")
+                print(f"[→] Detectado: {raw_label} → {current_label} | {peso:.1f}kg | R${price:.2f} | conf={current_conf:.0%} — enviando...")
 
                 # thread SEM daemon para garantir conclusão ao fechar
                 t = threading.Thread(
                     target=_send_to_server,
-                    args=(current_label, current_conf, peso, evidence_path, row_idx),
+                    args=(current_label, current_conf, peso, price, evidence_path, row_idx),
                     daemon=False,
                 )
                 t.start()
@@ -186,7 +191,7 @@ while True:
 
     # ── Painel inferior ───────────────────────────────────────────────────────
     fh, fw = annotated_frame.shape[:2]
-    pw, ph, r = 360, 85, 18
+    pw, ph, r = 380, 100, 18
     px, py = (fw - pw) // 2, fh - ph - 25
     col = (230, 230, 235)
     ov = annotated_frame.copy()
@@ -197,9 +202,10 @@ while True:
     cv2.addWeighted(ov, 1, annotated_frame, 0, 0, annotated_frame)
 
     orange, black = (0, 107, 255), (30, 30, 30)
-    cv2.putText(annotated_frame, f"Itens: {total_itens}", (px+15, py+30), cv2.FONT_HERSHEY_SIMPLEX, 0.65, orange, 2)
-    cv2.putText(annotated_frame, f"Peso: {total_peso:.1f} kg", (px+15, py+62), cv2.FONT_HERSHEY_SIMPLEX, 0.65, black, 2)
-    cv2.putText(annotated_frame, f"Equipe ID: {TEAM_ID}", (px+200, py+46), cv2.FONT_HERSHEY_SIMPLEX, 0.6, black, 2)
+    cv2.putText(annotated_frame, f"Itens: {total_itens}", (px+15, py+26), cv2.FONT_HERSHEY_SIMPLEX, 0.60, orange, 2)
+    cv2.putText(annotated_frame, f"Peso: {total_peso:.1f} kg", (px+15, py+52), cv2.FONT_HERSHEY_SIMPLEX, 0.55, black, 2)
+    cv2.putText(annotated_frame, f"Valor: R${total_valor:.2f}", (px+15, py+76), cv2.FONT_HERSHEY_SIMPLEX, 0.55, black, 2)
+    cv2.putText(annotated_frame, f"Equipe ID: {TEAM_ID}", (px+200, py+52), cv2.FONT_HERSHEY_SIMPLEX, 0.55, black, 2)
 
     cv2.imshow(WINDOW_NAME, annotated_frame)
 
@@ -221,4 +227,4 @@ if _pending_threads:
         for t in pending:
             t.join(timeout=15)
 
-print(f"Câmera encerrada. Total: {total_itens} itens | {total_peso:.1f} kg")
+print(f"Câmera encerrada. Total: {total_itens} itens | {total_peso:.1f} kg | R${total_valor:.2f}")

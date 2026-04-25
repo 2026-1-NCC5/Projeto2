@@ -11,5 +11,6 @@ class CameraReading(Base):
     category = Column(String(50), nullable=False)
     confidence = Column(Float, nullable=False)
     kg_amount = Column(Float, nullable=False, default=0.0)
+    price = Column(Float, nullable=True, default=0.0)
     evidence_path = Column(String(255), nullable=True)
     created_at = Column(DateTime(timezone=True), server_default=func.now())

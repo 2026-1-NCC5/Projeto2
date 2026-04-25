@@ -8,6 +8,7 @@ class CameraReadingCreate(BaseModel):
     category: str
     confidence: float
     kg_amount: float
+    price: Optional[float] = None
     evidence_path: Optional[str] = None
 
 
@@ -18,6 +19,7 @@ class CameraReadingResponse(BaseModel):
     category: str
     confidence: float
     kg_amount: float
+    price: Optional[float] = None
     evidence_path: Optional[str] = None
     created_at: Optional[datetime] = None
 
@@ -30,5 +32,6 @@ class CameraReadingSummaryItem(BaseModel):
     team_name: str
     category: str
     total_kg: float
+    total_price: float
     avg_confidence: float
     count: int
