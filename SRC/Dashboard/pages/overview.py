@@ -8,6 +8,8 @@ from layout import CAT_LABELS, PLOTLY_CONFIG, filter_team_dropdown, filter_dater
 
 dash.register_page(__name__, path="/dashboard", title="Visão Geral — Admin")
 
+_GRAPH_H = {"height": "360px"}
+
 
 def layout():
     teams = get_teams()
@@ -23,7 +25,7 @@ def layout():
 
         html.Div([
             html.H3("App vs Câmera — kg por categoria"),
-            dcc.Graph(id="ov-comparison-chart", config=PLOTLY_CONFIG),
+            dcc.Graph(id="ov-comparison-chart", config=PLOTLY_CONFIG, style=_GRAPH_H),
             html.Div([
                 html.Button("▼ Ver detalhes", id="ov-toggle-table",
                             n_clicks=0, className="btn-secondary",
@@ -78,7 +80,7 @@ def update_overview(team_id, from_date, to_date, auth_data):
     fig.update_layout(
         barmode="group", paper_bgcolor="white", plot_bgcolor="white",
         legend={"orientation": "h", "y": 1.12},
-        margin={"t": 40, "b": 30, "l": 40, "r": 10},
+        margin={"t": 50, "b": 30, "l": 40, "r": 10},
         yaxis={"showgrid": True, "gridcolor": "#f0f0f0"},
         xaxis={"showgrid": False},
     )

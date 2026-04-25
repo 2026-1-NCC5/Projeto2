@@ -60,8 +60,8 @@ def build_sidebar(pathname: str) -> html.Div:
         ], className="sidebar-brand"),
         html.Div(items, className="sidebar-nav"),
         html.Div([
-            html.A("🚪 Sair", href="/logout", className="nav-item",
-                   style={"color": "rgba(255,255,255,.7)"}),
+            dcc.Link("🚪 Sair", href="/logout", className="nav-item",
+                     style={"color": "rgba(255,255,255,.7)", "textDecoration": "none"}),
         ], className="sidebar-footer"),
     ], className="sidebar", id="sidebar")
 

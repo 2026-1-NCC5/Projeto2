@@ -9,6 +9,9 @@ from layout import (CAT_LABELS, PLOTLY_COLORS, PLOTLY_CONFIG, filter_team_dropdo
 
 dash.register_page(__name__, path="/dashboard/camera", title="Câmera YOLO — Admin")
 
+_GRAPH_H = {"height": "340px"}
+_GRAPH_H_LG = {"height": "400px"}
+
 
 def layout():
     teams = get_teams()
@@ -27,25 +30,25 @@ def layout():
             html.Div([
                 html.Div([
                     html.H3("kg e Valor por Categoria"),
-                    dcc.Graph(id="cam-bars", config=PLOTLY_CONFIG),
+                    dcc.Graph(id="cam-bars", config=PLOTLY_CONFIG, style=_GRAPH_H),
                 ], className="card"),
             ], style={"flex": "2", "minWidth": "320px"}),
             html.Div([
                 html.Div([
                     html.H3("Confiança Média por Categoria"),
-                    dcc.Graph(id="cam-conf-bars", config=PLOTLY_CONFIG),
+                    dcc.Graph(id="cam-conf-bars", config=PLOTLY_CONFIG, style=_GRAPH_H),
                 ], className="card"),
             ], style={"flex": "1", "minWidth": "260px"}),
         ], style={"display": "flex", "gap": "16px", "flexWrap": "wrap"}),
 
         html.Div([
             html.H3("Detecções ao Longo do Tempo"),
-            dcc.Graph(id="cam-timeline", config=PLOTLY_CONFIG),
+            dcc.Graph(id="cam-timeline", config=PLOTLY_CONFIG, style=_GRAPH_H),
         ], className="card"),
 
         html.Div([
             html.H3("Heatmap: Equipe × Categoria (kg)"),
-            dcc.Graph(id="cam-heatmap", config=PLOTLY_CONFIG),
+            dcc.Graph(id="cam-heatmap", config=PLOTLY_CONFIG, style=_GRAPH_H_LG),
         ], className="card"),
     ])
 
@@ -92,7 +95,7 @@ def update_camera(team_id, category, from_date, to_date, auth_data):
                       labels={"label": "Categoria", "kg": "kg"})
     fig_bars.update_traces(textposition="outside")
     fig_bars.update_layout(paper_bgcolor="white", plot_bgcolor="white",
-                           margin={"t": 30, "b": 30, "l": 40, "r": 10},
+                           margin={"t": 40, "b": 30, "l": 40, "r": 10},
                            yaxis={"showgrid": True, "gridcolor": "#f0f0f0"},
                            xaxis={"showgrid": False})
 
@@ -104,10 +107,10 @@ def update_camera(team_id, category, from_date, to_date, auth_data):
     fig_conf = px.bar(conf, x="label", y="pct", text="text",
                       color_discrete_sequence=["#FFB347"],
                       labels={"label": "Categoria", "pct": "Confiança (%)"},
-                      range_y=[0, 110])
+                      range_y=[0, 115])
     fig_conf.update_traces(textposition="outside")
     fig_conf.update_layout(paper_bgcolor="white", plot_bgcolor="white",
-                           margin={"t": 30, "b": 30, "l": 40, "r": 10},
+                           margin={"t": 40, "b": 30, "l": 40, "r": 10},
                            yaxis={"showgrid": True, "gridcolor": "#f0f0f0"},
                            xaxis={"showgrid": False})
 

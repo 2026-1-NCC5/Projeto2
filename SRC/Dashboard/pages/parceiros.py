@@ -2,10 +2,12 @@ import dash
 from dash import html, dcc, callback, Input, Output
 import plotly.express as px
 import pandas as pd
-from data import get_public_camera_readings, get_public_camera_kpis
+from data import get_public_camera_readings, get_public_camera_kpis, _API_ERROR
 from layout import CAT_LABELS, PLOTLY_COLORS, PLOTLY_CONFIG, empty_figure
 
 dash.register_page(__name__, path="/", title="Resultados — Lideranças Empáticas")
+
+_GRAPH_H = {"height": "340px"}
 
 
 def _public_header():
@@ -24,7 +26,6 @@ def _public_header():
 layout = html.Div([
     _public_header(),
     html.Div([
-        # Filtro apenas por categoria
         html.Div([
             html.Div([
                 html.Span("Categoria", className="filter-label"),
@@ -38,29 +39,26 @@ layout = html.Div([
             ]),
         ], className="filters-row"),
 
-        # KPIs
         html.Div(id="pub-kpis", className="kpi-grid"),
 
-        # Linha: donut + timeline
         html.Div([
             html.Div([
                 html.Div([
                     html.H3("Distribuição por Categoria"),
-                    dcc.Graph(id="pub-donut", config=PLOTLY_CONFIG),
+                    dcc.Graph(id="pub-donut", config=PLOTLY_CONFIG, style=_GRAPH_H),
                 ], className="card"),
             ], style={"flex": "1", "minWidth": "280px"}),
             html.Div([
                 html.Div([
                     html.H3("Detecções ao Longo do Tempo"),
-                    dcc.Graph(id="pub-timeline", config=PLOTLY_CONFIG),
+                    dcc.Graph(id="pub-timeline", config=PLOTLY_CONFIG, style=_GRAPH_H),
                 ], className="card"),
             ], style={"flex": "2", "minWidth": "320px"}),
         ], style={"display": "flex", "gap": "16px", "flexWrap": "wrap"}),
 
-        # Barras
         html.Div([
             html.H3("kg Validado por Categoria"),
-            dcc.Graph(id="pub-bars", config=PLOTLY_CONFIG),
+            dcc.Graph(id="pub-bars", config=PLOTLY_CONFIG, style=_GRAPH_H),
         ], className="card"),
 
     ], style={"maxWidth": "1100px", "margin": "24px auto", "padding": "0 16px"}),
@@ -90,8 +88,12 @@ def update_public(category):
                   html.Div("Confiança média", className="lbl")], className="kpi-box"),
     ]
 
+    if df is _API_ERROR:
+        msg = empty_figure("⚠️ Servidor indisponível — reinicie o container")
+        return kpi_boxes, msg, msg, msg
+
     if df.empty:
-        e = empty_figure()
+        e = empty_figure("Sem dados")
         return kpi_boxes, e, e, e
 
     # Donut
@@ -113,7 +115,7 @@ def update_public(category):
     fig_line.update_xaxes(showgrid=False)
     fig_line.update_yaxes(showgrid=True, gridcolor="#f0f0f0")
 
-    # Barras com valor R$
+    # Barras
     bar_agg = df.groupby("category").agg(
         kg=("kg_amount", "sum"), price=("price", "sum")
     ).reset_index()
@@ -124,7 +126,7 @@ def update_public(category):
                       labels={"label": "Categoria", "kg": "kg"})
     fig_bars.update_traces(textposition="outside")
     fig_bars.update_layout(paper_bgcolor="white", plot_bgcolor="white",
-                           margin={"t": 30, "b": 30, "l": 40, "r": 10})
+                           margin={"t": 40, "b": 30, "l": 40, "r": 10})
     fig_bars.update_yaxes(showgrid=True, gridcolor="#f0f0f0")
     fig_bars.update_xaxes(showgrid=False)
 

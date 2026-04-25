@@ -14,6 +14,9 @@ _TEAM_COLS = ["id", "name"]
 _USER_COLS = ["id", "name", "email", "role", "team_id"]
 
 
+_API_ERROR = object()
+
+
 def _get(path, token=None, params=None):
     headers = {}
     if token:
@@ -22,6 +25,8 @@ def _get(path, token=None, params=None):
         r = requests.get(f"{SERVER_URL}{path}", headers=headers, params=params, timeout=10)
         r.raise_for_status()
         return r.json()
+    except requests.exceptions.RequestException:
+        return _API_ERROR
     except Exception:
         return []
 
@@ -34,9 +39,11 @@ def _to_df(data, cols):
 
 # ── Pública (sem auth) ────────────────────────────────────────────────────────
 
-def get_public_camera_readings(category=None, from_date=None, to_date=None) -> pd.DataFrame:
+def get_public_camera_readings(category=None, from_date=None, to_date=None):
     params = {k: v for k, v in {"category": category, "from_date": from_date, "to_date": to_date}.items() if v}
     data = _get("/api/public/camera-readings", params=params)
+    if data is _API_ERROR:
+        return _API_ERROR
     df = _to_df(data, _CAMERA_COLS)
     if not df.empty and "price" in df.columns:
         df["price"] = df["price"].fillna(0.0)
@@ -45,7 +52,7 @@ def get_public_camera_readings(category=None, from_date=None, to_date=None) -> p
 
 def get_public_camera_kpis(category=None, from_date=None, to_date=None) -> dict:
     df = get_public_camera_readings(category=category, from_date=from_date, to_date=to_date)
-    if df.empty:
+    if df is _API_ERROR or df.empty:
         return {"total_kg": 0.0, "total_price": 0.0, "total_count": 0, "avg_confidence": 0.0}
     return {
         "total_kg": round(float(df["kg_amount"].sum()), 2),

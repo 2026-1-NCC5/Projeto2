@@ -8,6 +8,8 @@ from layout import (CAT_LABELS, PLOTLY_COLORS, PLOTLY_CONFIG, filter_team_dropdo
 
 dash.register_page(__name__, path="/dashboard/app", title="App Manual — Admin")
 
+_GRAPH_H = {"height": "340px"}
+
 
 def layout():
     teams = get_teams()
@@ -26,20 +28,20 @@ def layout():
             html.Div([
                 html.Div([
                     html.H3("kg por Equipe"),
-                    dcc.Graph(id="app-by-team", config=PLOTLY_CONFIG),
+                    dcc.Graph(id="app-by-team", config=PLOTLY_CONFIG, style=_GRAPH_H),
                 ], className="card"),
             ], style={"flex": "1", "minWidth": "300px"}),
             html.Div([
                 html.Div([
                     html.H3("Distribuição por Categoria"),
-                    dcc.Graph(id="app-donut", config=PLOTLY_CONFIG),
+                    dcc.Graph(id="app-donut", config=PLOTLY_CONFIG, style=_GRAPH_H),
                 ], className="card"),
             ], style={"flex": "1", "minWidth": "280px"}),
         ], style={"display": "flex", "gap": "16px", "flexWrap": "wrap"}),
 
         html.Div([
             html.H3("Registros ao Longo do Tempo"),
-            dcc.Graph(id="app-timeline", config=PLOTLY_CONFIG),
+            dcc.Graph(id="app-timeline", config=PLOTLY_CONFIG, style=_GRAPH_H),
         ], className="card"),
 
         html.Div([

@@ -19,7 +19,7 @@ def layout():
 
         html.Div([
             html.H3("Progresso por Equipe e Categoria"),
-            dcc.Graph(id="goals-progress", config=PLOTLY_CONFIG),
+            dcc.Graph(id="goals-progress", config=PLOTLY_CONFIG, style={"height": "420px"}),
         ], className="card"),
 
         html.Div([
@@ -94,10 +94,10 @@ def update_goals(team_id, auth_data):
     ))
     fig.update_layout(
         paper_bgcolor="white", plot_bgcolor="white",
-        margin={"t": 20, "b": 90, "l": 40, "r": 10},
+        margin={"t": 30, "b": 100, "l": 40, "r": 10},
         yaxis={"showgrid": True, "gridcolor": "#f0f0f0"},
         xaxis={"showgrid": False, "tickangle": -30},
-        legend={"orientation": "h", "y": 1.1},
+        legend={"orientation": "h", "y": 1.08},
     )
 
     table_rows = [html.Tr([

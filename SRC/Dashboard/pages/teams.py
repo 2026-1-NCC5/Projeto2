@@ -8,6 +8,8 @@ from layout import PLOTLY_CONFIG, kpi_box, empty_figure
 
 dash.register_page(__name__, path="/dashboard/teams", title="Equipes — Admin")
 
+_GRAPH_H = {"height": "340px"}
+
 layout = html.Div([
     html.H2("👥 Equipes", className="page-header"),
     html.Div(id="teams-kpis", className="kpi-grid"),
@@ -15,13 +17,13 @@ layout = html.Div([
         html.Div([
             html.Div([
                 html.H3("Ranking por kg Total"),
-                dcc.Graph(id="teams-ranking", config=PLOTLY_CONFIG),
+                dcc.Graph(id="teams-ranking", config=PLOTLY_CONFIG, style=_GRAPH_H),
             ], className="card"),
         ], style={"flex": "1", "minWidth": "300px"}),
         html.Div([
             html.Div([
                 html.H3("App vs Câmera por Equipe"),
-                dcc.Graph(id="teams-comparison", config=PLOTLY_CONFIG),
+                dcc.Graph(id="teams-comparison", config=PLOTLY_CONFIG, style=_GRAPH_H),
             ], className="card"),
         ], style={"flex": "1", "minWidth": "300px"}),
     ], style={"display": "flex", "gap": "16px", "flexWrap": "wrap"}),
@@ -91,7 +93,7 @@ def update_teams(pathname, auth_data):
                               marker_color="#FFB347"))
     fig_comp.update_layout(
         barmode="group", paper_bgcolor="white", plot_bgcolor="white",
-        margin={"t": 20, "b": 40, "l": 40, "r": 10},
+        margin={"t": 50, "b": 40, "l": 40, "r": 10},
         legend={"orientation": "h", "y": 1.1},
         yaxis={"showgrid": True, "gridcolor": "#f0f0f0"},
         xaxis={"showgrid": False},
