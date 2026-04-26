@@ -45,11 +45,12 @@ def layout():
     Output("ov-comparison-chart", "figure"),
     Output("ov-comparison-table", "children"),
     Input("ov-team", "value"),
-    Input("ov-dates", "start_date"),
-    Input("ov-dates", "end_date"),
+    Input("ov-dates-apply", "n_clicks"),
+    State("ov-dates", "start_date"),
+    State("ov-dates", "end_date"),
     State("auth-store", "data"),
 )
-def update_overview(team_id, from_date, to_date, auth_data):
+def update_overview(team_id, _n_apply, from_date, to_date, auth_data):
     token = (auth_data or {}).get("token", "")
     tid = None if not team_id or team_id == "all" else int(team_id)
     cam_kpis = get_camera_kpis(token, team_id=tid, from_date=from_date, to_date=to_date)

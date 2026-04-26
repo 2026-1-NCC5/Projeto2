@@ -61,11 +61,12 @@ def layout():
     Output("cam-heatmap", "figure"),
     Input("cam-team", "value"),
     Input("cam-cat", "value"),
-    Input("cam-dates", "start_date"),
-    Input("cam-dates", "end_date"),
+    Input("cam-dates-apply", "n_clicks"),
+    State("cam-dates", "start_date"),
+    State("cam-dates", "end_date"),
     State("auth-store", "data"),
 )
-def update_camera(team_id, category, from_date, to_date, auth_data):
+def update_camera(team_id, category, _n_apply, from_date, to_date, auth_data):
     token = (auth_data or {}).get("token", "")
     tid = None if not team_id or team_id == "all" else int(team_id)
     cat = None if not category or category == "all" else category

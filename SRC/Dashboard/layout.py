@@ -1,4 +1,12 @@
 from dash import html, dcc
+import plotly.io as pio
+import plotly.graph_objects as go
+
+# Fonte Arial como padrão para todos os gráficos Plotly
+pio.templates["arial"] = go.layout.Template(
+    layout=dict(font=dict(family="Arial, Helvetica, sans-serif"))
+)
+pio.templates.default = "plotly+arial"
 
 COLORS = {
     "primary": "#FF6B00",
@@ -110,13 +118,19 @@ def filter_category_dropdown(dropdown_id: str) -> html.Div:
 def filter_daterange(daterange_id: str) -> html.Div:
     return html.Div([
         html.Span("Período", className="filter-label"),
-        dcc.DatePickerRange(
-            id=daterange_id,
-            display_format="DD/MM/YYYY",
-            start_date_placeholder_text="Início",
-            end_date_placeholder_text="Fim",
-            with_portal=True,
-        ),
+        html.Div([
+            dcc.DatePickerRange(
+                id=daterange_id,
+                display_format="DD/MM/YYYY",
+                start_date_placeholder_text="Início",
+                end_date_placeholder_text="Fim",
+                with_portal=True,
+            ),
+            html.Button("Confirmar",
+                        id=f"{daterange_id}-apply",
+                        n_clicks=0,
+                        className="btn-primary daterange-apply"),
+        ], className="daterange-row"),
     ])
 
 

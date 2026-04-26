@@ -937,39 +937,54 @@ tr:hover td { background: #FFF9F2; }
 .DateRangePicker_closeButton_svg { display: none !important; }
 
 .DateRangePicker_closeButton::before {
-  content: "Confirmar";
+  content: "Fechar";
 }
 
-/* ── Mobile: bottom sheet ─────────────────────────────────────── */
+/* ── Botão Confirmar do filtro de período ─────────────────── */
+.daterange-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.btn-primary.daterange-apply {
+  padding: 9px 18px;
+  font-size: 13px;
+  white-space: nowrap;
+}
+
+@media (max-width: 768px) {
+  .daterange-row { width: 100%; }
+  .daterange-row > .DateRangePicker { flex: 1 1 auto; }
+  .btn-primary.daterange-apply { width: 100%; margin-top: 4px; }
+}
+
+/* ── Mobile: calendário centralizado ─────────────────────────── */
 @media (max-width: 768px) {
   .DateRangePicker_picker__portal {
-    align-items: flex-end !important;
-    padding: 0 !important;
+    align-items: center !important;
+    justify-content: center !important;
+    padding: 16px !important;
   }
 
   .DateRangePicker_picker__portal .DayPicker,
   .DateRangePicker_picker__portal .DayPicker_1 {
-    width: 100vw !important;
-    max-width: 100vw !important;
-    border-radius: 20px 20px 0 0 !important;
-    max-height: 85dvh !important;
+    width: auto !important;
+    max-width: calc(100vw - 32px) !important;
+    border-radius: var(--radius-lg) !important;
+    max-height: 80dvh !important;
     overflow-y: auto !important;
     overscroll-behavior: contain !important;
     -webkit-overflow-scrolling: touch !important;
-    padding-bottom: env(safe-area-inset-bottom, 16px) !important;
-    margin: 0 !important;
-    animation: pickerSlideUpSheet .3s cubic-bezier(.22, 1, .36, 1) !important;
-  }
-
-  @keyframes pickerSlideUpSheet {
-    from { transform: translateY(100%); }
-    to   { transform: translateY(0); }
+    margin: auto !important;
+    animation: pickerSlideUp .25s cubic-bezier(.22, 1, .36, 1) !important;
   }
 
   .DateRangePicker_closeButton {
-    bottom: calc(env(safe-area-inset-bottom, 0px) + 14px) !important;
-    width: calc(100vw - 32px) !important;
-    max-width: 360px !important;
-    padding: 14px 24px !important;
+    bottom: calc(env(safe-area-inset-bottom, 0px) + 24px) !important;
+    width: auto !important;
+    max-width: 90vw !important;
+    padding: 12px 28px !important;
   }
 }
