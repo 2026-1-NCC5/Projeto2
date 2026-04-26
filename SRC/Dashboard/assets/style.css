@@ -430,10 +430,7 @@ h2.page-header {
   padding: 24px 16px;
   overflow-y: auto;
   z-index: 50;
-  background:
-    radial-gradient(ellipse 80% 60% at 15% 10%, rgba(255, 107, 0, .10) 0%, transparent 60%),
-    radial-gradient(ellipse 60% 50% at 85% 90%, rgba(255, 140, 66, .07) 0%, transparent 55%),
-    var(--bg);
+  background: var(--bg);
 }
 
 .login-card {
