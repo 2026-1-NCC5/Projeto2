@@ -125,7 +125,6 @@ def list_camera_readings(
     category: Optional[str] = Query(None),
     from_date: Optional[datetime] = Query(None),
     to_date: Optional[datetime] = Query(None),
-    limit: int = Query(100, le=500),
     db: Session = Depends(get_db),
     _: dict = Depends(_require_admin),
 ):
@@ -140,7 +139,7 @@ def list_camera_readings(
     if to_date:
         q = q.filter(CameraReading.created_at <= to_date)
 
-    readings = q.order_by(CameraReading.id.desc()).limit(limit).all()
+    readings = q.order_by(CameraReading.id.desc()).all()
 
     result = []
     for r in readings:
