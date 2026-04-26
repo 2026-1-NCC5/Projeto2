@@ -1,4 +1,4 @@
-# Projeto2 - A2LV
+# A2LV - Scanner AI
 Projeto 2
 # 🏫 FECAP - Fundação de Comércio Álvares Penteado
 <p align="center">
@@ -29,8 +29,9 @@ O Lideranças Empáticas (LE) é uma iniciativa que une impacto social e educaç
  ├── 🗂️ Imagens/<br>
  ├── 🗂️ SRC/<br>
  │   ├── 🗂️ App/<br>
- │   ├── 🗂️ camera_ai/<br>
- │   └── 🗂️ Server/<br>
+ │   ├── 🗂️ Dashboard/<br>
+ │   ├── 🗂️ Server/<br>
+ │   └── 🗂️ camera_ai/<br>
  ├── 📄 .gitigore<br>
  └── 📄 readme.md<br>
  
@@ -41,6 +42,10 @@ O Lideranças Empáticas (LE) é uma iniciativa que une impacto social e educaç
   <li><img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/flutter/flutter-original.svg" width="18"/> <a href="https://flutter.dev/">Flutter</a></li>
   <li><img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/dart/dart-original.svg" width="18"/> <a href="https://dart.dev/">Dart</a></li>
   <li><img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/python/python-original.svg" width="18"/> <a href="https://www.python.org/">Python</a></li>
+  <li><img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/pytorch/pytorch-original.svg" width="18"/> <a href="https://github.com/ultralytics/ultralytics">YOLOv8</a></li>
+  <li><img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/postgresql/postgresql-original.svg" width="18"/> <a href="https://www.postgresql.org/">PostgreSQL</a></li>
+  <li><img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/opencv/opencv-original.svg" width="18"/> <a href="https://opencv.org/">OpenCV</a></li>
+  <li><img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/amazonwebservices/amazonwebservices-original-wordmark.svg" width="18"/> <a href="https://aws.amazon.com/">AWS</a></li>
 </ul>
 
 # 📋 Licença/License
