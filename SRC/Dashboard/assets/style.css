@@ -422,11 +422,14 @@ h2.page-header {
 
 /* ── Login ────────────────────────────────────────────────── */
 .login-wrapper {
-  min-height: 100vh;
+  position: fixed;
+  inset: 0;
   display: flex;
   align-items: center;
   justify-content: center;
   padding: 24px 16px;
+  overflow-y: auto;
+  z-index: 50;
   background:
     radial-gradient(ellipse 80% 60% at 15% 10%, rgba(255, 107, 0, .10) 0%, transparent 60%),
     radial-gradient(ellipse 60% 50% at 85% 90%, rgba(255, 140, 66, .07) 0%, transparent 55%),
@@ -491,7 +494,12 @@ h2.page-header {
 
 .form-group { margin-bottom: 20px; }
 
-.form-group label {
+.form-group label,
+.form-group > label,
+.login-card label,
+.login-form label,
+label[for],
+.login-form > .form-group > label {
   display: block;
   font-family: Arial, Helvetica, sans-serif !important;
   font-size: 11px;
@@ -500,6 +508,13 @@ h2.page-header {
   margin-bottom: 7px;
   letter-spacing: 0.07em;
   text-transform: uppercase;
+}
+
+/* Garantir Arial em qualquer label do app */
+label,
+span.filter-label,
+.filter-label {
+  font-family: Arial, Helvetica, sans-serif !important;
 }
 
 .btn-login {
@@ -718,10 +733,8 @@ tr:hover td { background: #FFF9F2; }
   .public-header { position: relative; }
 
   .login-wrapper {
-    min-height: 100dvh;
     align-items: flex-start;
-    padding-top: 40px;
-    padding-bottom: 40px;
+    padding: 32px 16px;
   }
 
   .filters-row {
@@ -884,20 +897,50 @@ tr:hover td { background: #FFF9F2; }
   to   { opacity: 1; transform: translateY(0) scale(1); }
 }
 
+/* Transforma o "X" de fechar em um botão "Confirmar" centralizado */
 .DateRangePicker_closeButton {
-  z-index: 10000 !important;
-  top: 16px !important;
-  right: 16px !important;
+  position: fixed !important;
+  top: auto !important;
+  right: auto !important;
+  bottom: 32px !important;
+  left: 50% !important;
+  transform: translateX(-50%) !important;
+  background: linear-gradient(180deg, var(--primary) 0%, #E55A00 100%) !important;
   color: #fff !important;
-  opacity: .85 !important;
+  border: none !important;
+  border-radius: var(--radius-sm) !important;
+  padding: 13px 36px !important;
+  font-family: 'DM Sans', sans-serif !important;
+  font-size: 14px !important;
+  font-weight: 600 !important;
+  letter-spacing: 0 !important;
+  cursor: pointer !important;
+  z-index: 10000 !important;
+  width: auto !important;
+  height: auto !important;
+  opacity: 1 !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  box-shadow: 0 8px 24px rgba(204, 85, 0, .35), inset 0 1px 0 rgba(255, 255, 255, .2) !important;
+  transition: transform .15s ease, box-shadow .2s ease, filter .15s ease !important;
 }
 
-.DateRangePicker_closeButton:hover { opacity: 1 !important; }
+.DateRangePicker_closeButton:hover {
+  transform: translateX(-50%) translateY(-2px) !important;
+  box-shadow: 0 12px 28px rgba(204, 85, 0, .42), inset 0 1px 0 rgba(255, 255, 255, .25) !important;
+  filter: brightness(1.05) !important;
+}
 
-.DateRangePicker_closeButton_svg {
-  fill: #fff !important;
-  height: 18px !important;
-  width: 18px !important;
+.DateRangePicker_closeButton:active {
+  transform: translateX(-50%) translateY(0) !important;
+  filter: brightness(.97) !important;
+}
+
+.DateRangePicker_closeButton_svg { display: none !important; }
+
+.DateRangePicker_closeButton::before {
+  content: "Confirmar";
 }
 
 /* ── Mobile: bottom sheet ─────────────────────────────────────── */
@@ -927,10 +970,9 @@ tr:hover td { background: #FFF9F2; }
   }
 
   .DateRangePicker_closeButton {
-    top: 12px !important;
-    right: 12px !important;
-    color: var(--muted) !important;
+    bottom: calc(env(safe-area-inset-bottom, 0px) + 14px) !important;
+    width: calc(100vw - 32px) !important;
+    max-width: 360px !important;
+    padding: 14px 24px !important;
   }
-
-  .DateRangePicker_closeButton_svg { fill: var(--text-soft) !important; }
 }
