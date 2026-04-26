@@ -8,37 +8,46 @@ layout = html.Div([
     dcc.Location(id="login-redirect"),
     html.Div([
         html.Div([
-            html.Img(src="/assets/logo.png",
-                     style={"height": "72px", "display": "block",
-                            "margin": "0 auto 12px"}),
-            html.H2("Lideranças Empáticas"),
-            html.Div("Painel do Professor", className="sub"),
+            html.Div(className="login-accent"),
+            html.Div([
+                html.Img(src="/assets/logo.png", className="login-logo"),
+                html.H2("Lideranças Empáticas"),
+                html.P("Painel do Professor", className="sub"),
+            ], className="login-brand"),
             html.Div([
                 html.Div([
                     html.Label("E-mail"),
-                    dcc.Input(id="login-email", type="email",
-                              placeholder="seu@email.com",
-                              className="form-control", debounce=False,
-                              style={"width": "100%"}),
+                    dcc.Input(
+                        id="login-email", type="email",
+                        placeholder="seu@email.com",
+                        className="form-control",
+                        debounce=False,
+                    ),
                 ], className="form-group"),
                 html.Div([
                     html.Label("Senha"),
-                    dcc.Input(id="login-password", type="password",
-                              placeholder="sua senha",
-                              className="form-control", debounce=False,
-                              style={"width": "100%"}),
+                    dcc.Input(
+                        id="login-password", type="password",
+                        placeholder="sua senha",
+                        className="form-control",
+                        debounce=False,
+                    ),
                 ], className="form-group"),
-                html.Button("Entrar", id="login-btn", n_clicks=0,
-                            className="btn-primary",
-                            style={"width": "100%", "marginTop": "8px"}),
-                html.Div(id="login-msg", style={"marginTop": "12px", "fontSize": "13px"}),
-            ]),
-            dcc.Link("← Voltar para a página inicial", href="/",
-                     style={"display": "block", "textAlign": "center", "marginTop": "20px",
-                            "fontSize": "13px", "color": "#888", "textDecoration": "none"}),
+                html.Button(
+                    [html.Span("Entrar"), html.Span("→", className="btn-arrow")],
+                    id="login-btn", n_clicks=0,
+                    className="btn-primary btn-login",
+                ),
+                html.Div(id="login-msg", className="login-error"),
+            ], className="login-form"),
+            dcc.Link(
+                "← Voltar para a página inicial",
+                href="/",
+                className="login-back",
+            ),
         ], className="login-card"),
     ], className="login-wrapper"),
-], style={"background": "#f0f0f0", "minHeight": "100vh"})
+])
 
 
 @callback(
