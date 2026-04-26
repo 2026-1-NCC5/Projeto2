@@ -9,7 +9,9 @@ Projeto 2
 # 👨‍🏫 Professores Orientadores: <a href="https://br.linkedin.com/in/marcosminorunakatsugawa/pt">Prof. Marcos Minoru Nakatsugawa,</a> <a href="https://br.linkedin.com/in/rafael-diogo-rossetti"> Rafael Diogo Rossetti,</a> <a href="https://github.com/roddai">Prof. Rodrigo da Rosa,<a/> <a href="https://www.researchgate.net/profile/Rodnil-Lisboa-2">Prof. Rodnil da Silva Moreira Lisboa e </a> <a href="https://github.com/VictorRosetti">Prof. Victor Rosseti</a>
 
 # 📄 Descrição
-O Lideranças Empáticas (LE) é uma iniciativa que une impacto social e educação empreendedora, na qual nós desenvolvemos ações práticas de liderança, gestão e organização durante a arrecadação de alimentos. Para aprimorar esse processo, estamos criando uma solução capaz de identificar, classificar e contar automaticamente os alimentos arrecadados, registrando de forma confiável os resultados por equipe e por categoria.
+O Lideranças Empáticas (LE) é um projeto que une impacto social e educação empreendedora por meio da arrecadação de alimentos, permitindo o desenvolvimento de habilidades como liderança, gestão e organização.
+Para otimizar esse processo, estamos desenvolvendo o Scanner AI, uma solução baseada em Visão Computacional e Inteligência Artificial capaz de identificar, classificar e contar automaticamente os alimentos arrecadados. O sistema registra os dados por equipe, categoria e tempo, garantindo maior precisão e confiabilidade.
+Além disso, o projeto inclui um dashboard interativo, que permite acompanhar os resultados em tempo real, comparar o desempenho entre equipes e gerar relatórios, tornando a arrecadação mais eficiente e transparente.
 
 # 📋 Detalhes
  🗂️ Estrutura de pastas<br>
