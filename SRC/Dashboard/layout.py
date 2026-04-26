@@ -115,6 +115,7 @@ def filter_daterange(daterange_id: str) -> html.Div:
             display_format="DD/MM/YYYY",
             start_date_placeholder_text="Início",
             end_date_placeholder_text="Fim",
+            with_portal=True,
         ),
     ])
 
