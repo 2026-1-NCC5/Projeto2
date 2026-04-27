@@ -20,7 +20,7 @@ LOG_FILE = os.path.join(LOG_DIR, "readings.csv")
 
 WINDOW_NAME = "Leitura Automatica - YOLOv8 + OpenCV"
 
-SERVER_URL = os.getenv("SERVER_URL", "http://3.80.36.248:8000")
+SERVER_URL = os.getenv("SERVER_URL", "http://54.90.66.229:8000")
 CAMERA_API_KEY = os.getenv("CAMERA_API_KEY", "camera-secret-key")
 TEAM_ID = int(os.getenv("TEAM_ID", "1"))
 

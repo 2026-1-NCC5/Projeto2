@@ -1,5 +1,5 @@
 {
-  "server_url": "http://3.80.36.248:8000",
+  "server_url": "http://54.90.66.229:8000",
   "camera_api_key": "camera-secret-key",
   "team_id": 3,
   "admin_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxIiwiZW1haWwiOiJhZG1pbkBhZG1pbi5jb20iLCJyb2xlIjoiYWRtaW4iLCJuYW1lIjoiYWRtaW4iLCJ0ZWFtX2lkIjpudWxsLCJleHAiOjE3Nzk4MTcyMzJ9.-ErtdTvTD4U8qdeWI1JllbuqXL7OFuq7Uffj2-aCcCg",
