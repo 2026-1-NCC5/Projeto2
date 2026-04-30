@@ -1,5 +1,9 @@
+import time
+import logging
+
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from sqlalchemy.exc import OperationalError
 
 from app.db.init_db import init_db
 from app.routers.auth import router as auth_router
@@ -9,6 +13,8 @@ from app.routers.users import router as users_router
 from app.routers.goals import router as goals_router
 from app.routers.camera_readings import router as camera_readings_router
 from app.routers.public import router as public_router
+
+logger = logging.getLogger(__name__)
 
 app = FastAPI(title="Lideranças Empáticas API")
 
@@ -23,7 +29,16 @@ app.add_middleware(
 
 @app.on_event("startup")
 def startup():
-    init_db()
+    for tentativa in range(10):
+        try:
+            init_db()
+            return
+        except OperationalError as e:
+            if tentativa < 9:
+                logger.warning(f"Banco indisponível (tentativa {tentativa + 1}/10), aguardando 3s... {e}")
+                time.sleep(3)
+            else:
+                raise
 
 
 app.include_router(auth_router)
