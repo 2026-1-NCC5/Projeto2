@@ -28,6 +28,8 @@ Além disso, o projeto inclui um dashboard interativo, que permite acompanhar os
  │   │  └── 📂 Sistemas_Operacionais<br>
  │   │  └── 📂 Psicologia_Liderança<br>
  │   │  └── 📂 Projeto_Interdisciplinar<br>
+ │   ├── 📄 Banner<br>
+ │   └── 📄 Documento - Projeto de Extensão - COM Empresa<br>
  ├── 🗂️ Imagens/<br>
  ├── 🗂️ SRC/<br>
  │   ├── 🗂️ App/<br>
