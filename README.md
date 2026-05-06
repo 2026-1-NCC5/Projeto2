@@ -28,7 +28,8 @@ Além disso, o projeto inclui um dashboard interativo, que permite acompanhar os
  │   │  └── 📂 Sistemas_Operacionais<br>
  │   │  └── 📂 Psicologia_Liderança<br>
  │   │  └── 📂 Projeto_Interdisciplinar<br>
- │   ├── 📄 Banner<br>
+ │   ├── 📄 Banner_FECAP_CCOMP5_A2LV.pdf<br>
+ │   ├── 📄 Banner_FECAP_CCOMP5_A2LV.pptx<br>
  │   └── 📄 Documento - Projeto de Extensão - COM Empresa<br>
  ├── 🗂️ Imagens/<br>
  ├── 🗂️ SRC/<br>
