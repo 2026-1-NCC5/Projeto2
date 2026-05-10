@@ -1,6 +1,9 @@
-# Ignorar Makefiles de dependências na contagem
-vendor/** linguist-vendored
-node_modules/** linguist-vendored
+# Ignorar todos os Makefiles do projeto
+**/Makefile linguist-detectable=false
+**/*.mk linguist-detectable=false
 
-# Ou forçar que um Makefile específico seja ignorado
-Makefile linguist-detectable=false
+# Ignorar arquivos gerados pelo Flutter
+SRC/App/linux/** linguist-vendored
+SRC/App/windows/** linguist-vendored
+SRC/App/macos/** linguist-vendored
+SRC/App/build/** linguist-generated
