@@ -11,7 +11,7 @@ from app.core.security import decode_access_token
 
 router = APIRouter(prefix="/api/goals", tags=["Goals"])
 
-VALID_CATEGORIES = {"arroz", "feijao", "macarrao", "acucar", "outros"}
+VALID_CATEGORIES = {"arroz", "feijao", "macarrao", "acucar", "fuba", "oleo", "outros"}
 
 
 def _require_admin(authorization: str):

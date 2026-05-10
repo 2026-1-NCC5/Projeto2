@@ -820,18 +820,6 @@ tr:hover td { background: #FFF9F2; }
   border-left: 1px solid var(--border-soft);
 }
 
-/* ── Fonte Arial nos dropdowns (opções, valor selecionado, placeholder) ── */
-.Select-option,
-.Select-value-label,
-.Select-placeholder,
-.VirtualizedSelectOption,
-.Select-menu-outer,
-.dash-dropdown .Select-option,
-.dash-dropdown .Select-value-label {
-  font-family: Arial, Helvetica, sans-serif !important;
-  font-size: 13px !important;
-}
-
 /* ── Suaviza inputs Dash (dropdowns, date pickers) ───────────── */
 .Select-control,
 .dash-dropdown .Select-control {
