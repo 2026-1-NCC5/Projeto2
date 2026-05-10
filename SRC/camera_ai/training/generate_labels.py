@@ -6,11 +6,13 @@ BASE_IMAGE_DIR = "dataset/images"
 BASE_LABEL_DIR = "dataset/labels"
 
 CLASS_MAP = {
-    "arroz": 0,
-    "feijao": 1,
-    "outros": 2,
-    "cafe": 3,
-    "acucar": 4
+    "acucar": 0,
+    "arroz": 1,
+    "feijao": 2,
+    "fuba": 3,
+    "macarrao": 4,
+    "misto": 5,
+    "oleo": 6,
 }
 
 VALID_EXTENSIONS = (".jpg", ".jpeg", ".png")

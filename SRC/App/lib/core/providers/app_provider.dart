@@ -13,7 +13,7 @@ String roleLabel(UserRole role) {
   }
 }
 
-enum FoodCategory { arroz, feijao, macarrao, acucar, outros }
+enum FoodCategory { arroz, feijao, macarrao, acucar, fuba, oleo, outros }
 
 String foodCategoryLabel(FoodCategory c) {
   switch (c) {
@@ -25,6 +25,10 @@ String foodCategoryLabel(FoodCategory c) {
       return 'Macarrão';
     case FoodCategory.acucar:
       return 'Açúcar';
+    case FoodCategory.fuba:
+      return 'Fubá';
+    case FoodCategory.oleo:
+      return 'Óleo';
     case FoodCategory.outros:
       return 'Outros';
   }
@@ -40,6 +44,10 @@ FoodCategory? foodCategoryFromString(String s) {
       return FoodCategory.macarrao;
     case 'acucar':
       return FoodCategory.acucar;
+    case 'fuba':
+      return FoodCategory.fuba;
+    case 'oleo':
+      return FoodCategory.oleo;
     case 'outros':
       return FoodCategory.outros;
     default:
@@ -57,6 +65,10 @@ String foodCategoryToString(FoodCategory c) {
       return 'macarrao';
     case FoodCategory.acucar:
       return 'acucar';
+    case FoodCategory.fuba:
+      return 'fuba';
+    case FoodCategory.oleo:
+      return 'oleo';
     case FoodCategory.outros:
       return 'outros';
   }

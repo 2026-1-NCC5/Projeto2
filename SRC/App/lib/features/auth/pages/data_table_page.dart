@@ -419,6 +419,10 @@ class _DataTablePageState extends State<DataTablePage> {
         return Icons.ramen_dining;
       case FoodCategory.acucar:
         return Icons.icecream;
+      case FoodCategory.fuba:
+        return Icons.breakfast_dining;
+      case FoodCategory.oleo:
+        return Icons.water_drop;
       case FoodCategory.outros:
         return Icons.inventory_2;
     }

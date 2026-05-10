@@ -14,7 +14,7 @@ from app.core.security import decode_access_token
 
 router = APIRouter(prefix="/api/readings", tags=["Readings"])
 
-VALID_CATEGORIES = {"arroz", "feijao", "macarrao", "acucar", "outros"}
+VALID_CATEGORIES = {"arroz", "feijao", "macarrao", "acucar", "fuba", "oleo", "outros"}
 
 
 def _get_payload(authorization: str) -> dict:

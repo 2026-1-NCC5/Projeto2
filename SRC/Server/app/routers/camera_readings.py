@@ -18,7 +18,7 @@ from app.schemas.camera_reading import (
 
 router = APIRouter(prefix="/api/camera-readings", tags=["Camera Readings"])
 
-VALID_CATEGORIES = {"arroz", "feijao", "macarrao", "acucar", "outros", "cafe"}
+VALID_CATEGORIES = {"arroz", "feijao", "macarrao", "acucar", "fuba", "oleo", "outros"}
 
 
 def _require_camera_key(x_camera_key: str = Header(default="")):

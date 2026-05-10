@@ -39,6 +39,8 @@ CAT_LABELS = {
     "feijao": "Feijão",
     "macarrao": "Macarrão",
     "acucar": "Açúcar",
+    "fuba": "Fubá",
+    "oleo": "Óleo",
     "outros": "Outros",
 }
 

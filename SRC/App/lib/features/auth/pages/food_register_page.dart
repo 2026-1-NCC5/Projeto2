@@ -19,6 +19,8 @@ class _FoodRegisterPageState extends State<FoodRegisterPage> {
     FoodCategory.feijao: TextEditingController(),
     FoodCategory.macarrao: TextEditingController(),
     FoodCategory.acucar: TextEditingController(),
+    FoodCategory.fuba: TextEditingController(),
+    FoodCategory.oleo: TextEditingController(),
     FoodCategory.outros: TextEditingController(),
   };
 
