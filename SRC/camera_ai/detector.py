@@ -6,6 +6,11 @@ import time
 import threading
 from typing import Optional
 
+try:
+    import winsound as _winsound
+except ImportError:
+    _winsound = None
+
 import cv2
 import numpy as np
 import requests
@@ -263,6 +268,11 @@ while True:
         if stable_count >= REQUIRED_FRAMES:
             now = time.time()
             if current_label != last_saved_label or (now - last_saved_time) > COOLDOWN_SECONDS:
+                if _winsound:
+                    threading.Thread(
+                        target=lambda: _winsound.Beep(1000, 220), daemon=True
+                    ).start()
+
                 ts = datetime.now().strftime("%Y%m%d_%H%M%S")
                 evidence_path = os.path.join(EVIDENCE_DIR, f"{current_label}_{ts}.jpg")
                 cv2.imwrite(evidence_path, frame)
@@ -324,8 +334,13 @@ while True:
                 (px+15, py+52), cv2.FONT_HERSHEY_SIMPLEX, 0.55, black, 2)
     cv2.putText(annotated_frame, f"Valor: R${total_valor:.2f}",
                 (px+15, py+76), cv2.FONT_HERSHEY_SIMPLEX, 0.55, black, 2)
+
+    conf_txt = f"Conf: {current_conf:.0%}" if current_conf > 0 else "Conf: --"
+    conf_col = orange if current_conf > 0 else (160, 160, 160)
+    cv2.putText(annotated_frame, conf_txt,
+                (px+205, py+26), cv2.FONT_HERSHEY_SIMPLEX, 0.55, conf_col, 2)
     cv2.putText(annotated_frame, f"Equipe ID: {TEAM_ID}",
-                (px+200, py+52), cv2.FONT_HERSHEY_SIMPLEX, 0.55, black, 2)
+                (px+205, py+52), cv2.FONT_HERSHEY_SIMPLEX, 0.55, black, 2)
 
     cv2.imshow(WINDOW_NAME, annotated_frame)
 
