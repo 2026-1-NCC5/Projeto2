@@ -7,7 +7,7 @@ STOP_FILE = BASE_DIR / ".camera_stop"
 MODEL_PATH = BASE_DIR / "runs" / "detect" / "treino_alimentos" / "weights" / "best.pt"
 
 DEFAULT_CONFIG: dict = {
-    "server_url": "http://54.90.66.229:8000",
+    "server_url": "http://18.234.178.16:8000",
     "camera_api_key": "camera-secret-key",
     "team_id": 1,
     "admin_token": "",
