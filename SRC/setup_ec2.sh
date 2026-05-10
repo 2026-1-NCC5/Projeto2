@@ -1,11 +1,13 @@
 #!/bin/bash
 # =============================================================================
 # Script de setup completo para nova EC2 — Lideranças Empáticas
-# Ubuntu 22.04 LTS | t3.micro
+# Ubuntu 22.04/24.04 LTS | t3.micro
 # Executar como: bash setup_ec2.sh
 # =============================================================================
 
 set -e
+
+PROJECT_DIR=~/Projeto2/SRC
 
 echo "=========================================="
 echo " SETUP EC2 — Lideranças Empáticas"
@@ -72,11 +74,8 @@ sudo apt-get install -y \
     docker-buildx-plugin \
     docker-compose-plugin
 
-# Docker inicia automaticamente com o sistema
 sudo systemctl enable docker
 sudo systemctl start docker
-
-# Permite usar docker sem sudo
 sudo usermod -aG docker $USER
 
 echo "  [✓] Docker: $(docker --version)"
@@ -89,15 +88,15 @@ echo ""
 echo "[4/7] Clonando repositório..."
 
 cd ~
-if [ -d "SRC" ]; then
-    echo "  Pasta SRC já existe. Atualizando..."
-    cd SRC
+if [ -d "Projeto2/SRC" ]; then
+    echo "  Repositório já existe. Atualizando..."
+    cd Projeto2
     git fetch --depth=1 origin main
-    git merge origin/main --allow-unrelated-histories -m "update" 2>/dev/null || git reset --hard origin/main
+    git reset --hard origin/main
     cd ~
 else
-    git clone --depth=1 https://github.com/2026-1-NCC5/Projeto2.git SRC
-    echo "  [✓] Repositório clonado"
+    git clone --depth=1 https://github.com/2026-1-NCC5/Projeto2.git Projeto2
+    echo "  [✓] Repositório clonado em ~/Projeto2"
 fi
 
 # =============================================================================
@@ -106,12 +105,13 @@ fi
 echo ""
 echo "[5/7] Criando arquivos de configuração (.env)..."
 
-cat > ~/SRC/Server/.env << 'EOF'
+mkdir -p "$PROJECT_DIR/Server" "$PROJECT_DIR/Dashboard"
+
+cat > "$PROJECT_DIR/Server/.env" << 'EOF'
 POSTGRES_DB=liderancas_db
 POSTGRES_USER=liderancas_user
 POSTGRES_PASSWORD=SenhaForte123
 DATABASE_URL=postgresql+psycopg2://liderancas_user:SenhaForte123@db:5432/liderancas_db
-
 SECRET_KEY=ProjetoInterdisciplinarSenhaBemForte123
 ALGORITHM=HS256
 ACCESS_TOKEN_EXPIRE_MINUTES=43200
@@ -119,8 +119,7 @@ CAMERA_API_KEY=camera-secret-key
 EOF
 echo "  [✓] Server/.env criado"
 
-# Dashboard usa nome do container Docker internamente — não precisa do IP externo
-cat > ~/SRC/Dashboard/.env << 'EOF'
+cat > "$PROJECT_DIR/Dashboard/.env" << 'EOF'
 DATABASE_URL=postgresql://liderancas_user:SenhaForte123@db:5432/liderancas_db
 SERVER_URL=http://liderancas_backend:8000
 EOF
@@ -132,8 +131,7 @@ echo "  [✓] Dashboard/.env criado"
 echo ""
 echo "[6/7] Subindo containers Docker..."
 
-# Usa newgrp para garantir permissões de docker sem precisar relogar
-cd ~/SRC/Server
+cd "$PROJECT_DIR/Server"
 
 docker compose down --remove-orphans 2>/dev/null || true
 docker compose up -d --build
@@ -164,38 +162,26 @@ echo ""
 echo "  IP público desta EC2: $PUBLIC_IP"
 echo ""
 echo "  Serviços:"
-echo "    Backend  → http://$PUBLIC_IP:8000"
-echo "    API Docs → http://$PUBLIC_IP:8000/docs"
+echo "    Backend   → http://$PUBLIC_IP:8000"
+echo "    API Docs  → http://$PUBLIC_IP:8000/docs"
 echo "    Dashboard → http://$PUBLIC_IP:8050"
 echo ""
-echo "  Os containers reiniciam automaticamente"
-echo "  com o sistema (restart: always)."
-echo ""
-echo "=========================================="
-echo " PRÓXIMO PASSO:"
-echo "  Atualize o IP $PUBLIC_IP nos arquivos:"
-echo "  1. App/lib/core/api/api_config.dart"
-echo "  2. camera_ai/camera_config.json"
-echo "  3. camera_ai/config.py"
-echo "  4. camera_ai/detector.py"
+echo "  Os containers reiniciam automaticamente com o sistema."
 echo "=========================================="
 echo ""
 
-# Teste rápido do backend
 echo "Testando backend..."
 HTTP_CODE=$(curl -s -o /dev/null -w "%{http_code}" http://localhost:8000/docs || echo "000")
 if [ "$HTTP_CODE" = "200" ]; then
-    echo "  [✓] Backend respondendo (HTTP $HTTP_CODE)"
+    echo "  [✓] Backend OK (HTTP $HTTP_CODE)"
 else
-    echo "  [!] Backend retornou HTTP $HTTP_CODE — aguarde mais alguns segundos e teste:"
-    echo "      curl http://localhost:8000/docs"
+    echo "  [!] Backend HTTP $HTTP_CODE — aguarde e teste: curl http://localhost:8000/docs"
 fi
 
-echo ""
 echo "Testando dashboard..."
 HTTP_DASH=$(curl -s -o /dev/null -w "%{http_code}" http://localhost:8050 || echo "000")
 if [ "$HTTP_DASH" = "200" ]; then
-    echo "  [✓] Dashboard respondendo (HTTP $HTTP_DASH)"
+    echo "  [✓] Dashboard OK (HTTP $HTTP_DASH)"
 else
-    echo "  [!] Dashboard retornou HTTP $HTTP_DASH — aguarde mais alguns segundos."
+    echo "  [!] Dashboard HTTP $HTTP_DASH — aguarde e teste: curl http://localhost:8050"
 fi
