@@ -137,7 +137,7 @@ def get_comparison(token, team_id=None, from_date=None, to_date=None) -> pd.Data
     df_app = get_readings(token, team_id=team_id, from_date=from_date, to_date=to_date)
     df_cam = get_camera_readings(token, team_id=team_id, from_date=from_date, to_date=to_date)
 
-    categories = ["arroz", "feijao", "macarrao", "acucar", "outros"]
+    categories = ["arroz", "feijao", "macarrao", "acucar", "fuba", "oleo", "outros"]
     rows = []
     for cat in categories:
         kg_app = float(df_app[df_app["category"] == cat]["kg_amount"].sum()) if not df_app.empty else 0.0
