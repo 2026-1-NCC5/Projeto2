@@ -1,0 +1,6 @@
+# Ignorar Makefiles de dependências na contagem
+vendor/** linguist-vendored
+node_modules/** linguist-vendored
+
+# Ou forçar que um Makefile específico seja ignorado
+Makefile linguist-detectable=false
